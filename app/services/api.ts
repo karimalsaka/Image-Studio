@@ -9,12 +9,11 @@ export async function generateImage(prompt: string) {
         body: JSON.stringify({ prompt })
     })
 
+    const data = await response.json();
 
     if (!response.ok) {
-        const errorData = await response.json()
-
-        throw new ApiError(errorData.error || 'Failed to generate image', response.status)
+        throw new ApiError(data.error || 'Failed to generate image', response.status)
     }
 
-    return response.json()
+    return data
 }

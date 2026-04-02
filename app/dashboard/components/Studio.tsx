@@ -58,6 +58,8 @@ export default function Studio() {
       if (error instanceof ApiError) {
         console.error(`Error ${error.status}: ${error.message}`);
         setError(error.message);
+      } else {
+        setError('Something went wrong. Please try again.');
       }
     } finally {
       setIsLoading(false);

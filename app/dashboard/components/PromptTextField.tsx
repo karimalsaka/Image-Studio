@@ -1,13 +1,30 @@
-"use client"
+"use client";
 
-export default function PromptTextField( {prompt, onPromptChanged} :{prompt: string, onPromptChanged: (value: string) => void }) {
-    return(
-        <input 
-            type = "text"
-            value = {prompt}
-            onChange={(e) => { onPromptChanged(e.target.value)}}
-            placeholder="Describe the image you want..."
-            className="w-full flex-1 px-4 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500"
-        ></input>
-    )
+export default function PromptTextField({
+  prompt,
+  onPromptChanged,
+  onSubmit,
+  disabled,
+}: {
+  prompt: string;
+  onPromptChanged: (value: string) => void;
+  onSubmit?: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <textarea
+      value={prompt}
+      onChange={(e) => onPromptChanged(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" && !e.shiftKey && prompt.trim() && !disabled && onSubmit) {
+          e.preventDefault();
+          onSubmit();
+        }
+      }}
+      placeholder="Describe the image you want to create..."
+      className="w-full min-h-[80px] max-h-[160px] bg-transparent border-none outline-none resize-none text-[#1a1a1a] text-[15px] leading-relaxed placeholder:text-[#a09a94]"
+      rows={3}
+      disabled={disabled}
+    />
+  );
 }

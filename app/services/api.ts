@@ -2,11 +2,14 @@ import { ApiError } from "./errors";
 
 const API_URL = 'http://localhost:4000';
 
-export async function generateImage(prompt: string) {
+export async function generateImage(prompt: string, size?: string, model?: string) {
+    const body = { prompt, size, model };
+    console.log(`[API] POST ${API_URL}/api/generate`, body);
+
     const response = await fetch(`${API_URL}/api/generate`, {
-        method: 'POST', 
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
+        body: JSON.stringify(body)
     })
 
     const data = await response.json();

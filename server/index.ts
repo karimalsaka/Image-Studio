@@ -10,14 +10,14 @@ app.use(cors())
 app.use(express.json())
 
 app.post('/api/generate', async (req, res) => {
-    const { prompt } = req.body;
+    const { prompt, size, model } = req.body;
 
     if (!prompt) {
         return res.status(400).json({ error: "Missing prompt" })
     }
     
     try {
-        const data = await generateImage(prompt)
+        const data = await generateImage(prompt, size, model)
         res.json(data)
     } catch(error) {
         const message = error instanceof Error ? error.message : 'Failed to generate image';

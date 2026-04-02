@@ -1,4 +1,4 @@
-export async function generateImage(prompt: string) {
+export async function generateImage(prompt: string, size: string ='1:1', model: string = 'google/gemini-2.5-flash-image') {
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -6,17 +6,18 @@ export async function generateImage(prompt: string) {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-                model: 'google/gemini-2.5-flash-image',
-                messages: [
-                    {
-                        role: 'user',
-                        content: prompt,
-                    },
-                ],
-                modalities: ['image', 'text'],
-                n: 1,
-                size: '1024x1024',
-            }),
+            model: model,
+            messages: [
+                {
+                    role: 'user',
+                    content: prompt,
+                },
+            ],
+            modalities: ['image', 'text'],
+            image_config: {
+                aspect_ratio: size,
+            },
+        }),
     })
          
     const data = await response.json();

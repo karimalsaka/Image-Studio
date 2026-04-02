@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import PromptTextField from "./PromptTextField";
+import Dropdown from "@/app/components/Dropdown";
 import { generateImage } from "@/app/services/api";
 import { ApiError } from "@/app/services/errors";
 
@@ -42,7 +43,26 @@ const suggestions = [
 ];
 
 export default function Studio() {
+  const MODELS = [
+    { id: 'google/gemini-2.5-flash-image', label: 'Gemini 2.5 Flash' },
+    { id: 'google/gemini-3.1-flash-image-preview', label: 'Gemini 3.1 Flash' },
+    { id: 'google/gemini-3-pro-image-preview', label: 'Gemini 3 Pro' },
+    { id: 'openai/gpt-5-image-mini', label: 'GPT-5 Image Mini' },
+    { id: 'openai/gpt-5-image', label: 'GPT-5 Image' },
+  ];
+  
+  const SIZES = [
+    { id: '1:1', label: 'Square (1:1)' },
+    { id: '16:9', label: 'Landscape (16:9)' },
+    { id: '9:16', label: 'Portrait (9:16)' },
+    { id: '4:3', label: 'Standard (4:3)' },
+    { id: '3:2', label: 'Photo (3:2)' },
+    { id: '21:9', label: 'Ultra Wide (21:9)' },
+  ];
+  
   const [prompt, setPrompt] = useState("");
+  const [model, setModel] = useState(MODELS[0].id)
+  const [imageSize, setImageSize] = useState(SIZES[0].id)
   const [isLoading, setIsLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
   const [error, setError] = useState("");
@@ -52,7 +72,7 @@ export default function Studio() {
     setIsLoading(true);
     setError("");
     try {
-      const data = await generateImage(prompt);
+      const data = await generateImage(prompt, imageSize, model);
       setImageUrl(data.choices[0].message.images[0].image_url.url);
     } catch (error) {
       if (error instanceof ApiError) {
@@ -65,7 +85,7 @@ export default function Studio() {
       setIsLoading(false);
     }
   };
-
+  
   return (
     <div className="space-y-6">
       {/* Prompt card */}
@@ -80,7 +100,10 @@ export default function Studio() {
           disabled={isLoading}
         />
 
-        <div className="flex items-center justify-end mt-2">
+        <div className="flex items-center justify-end gap-2 mt-2">
+          <Dropdown options={MODELS} value={model} onChange={setModel} />
+          <Dropdown options={SIZES} value={imageSize} onChange={setImageSize} />
+
           <button
             onClick={handleGenerate}
             disabled={!prompt.trim() || isLoading}

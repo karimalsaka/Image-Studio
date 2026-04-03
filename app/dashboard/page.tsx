@@ -1,4 +1,5 @@
 import Studio from "./components/Studio"
+import RecentChats from "./components/RecentChats"
 
 export default function Dashboard() {
   return (
@@ -10,6 +11,7 @@ export default function Dashboard() {
         Describe what you want to create and let AI bring it to life.
       </p>
       <Studio />
+      <RecentChats />
     </div>
   );
 }

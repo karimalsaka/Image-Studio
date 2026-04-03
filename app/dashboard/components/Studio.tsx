@@ -167,22 +167,20 @@ export default function Studio() {
 
       {/* Generated images */}
       {imageUrls.length > 0 && !isLoading && (
-        <div className={`grid gap-3 ${
-          imageUrls.length === 1 ? "grid-cols-1" :
-          imageUrls.length === 2 ? "grid-cols-2" :
-          "grid-cols-3"
-        }`}>
+        <div className="grid grid-cols-3 gap-3">
           {imageUrls.map((url, i) => (
             <div
               key={url}
               className="rounded-2xl border border-stone-200 overflow-hidden group relative bg-stone-50 p-2"
             >
-              <img
-                src={url}
-                alt={`${prompt} (${i + 1})`}
-                className="rounded-xl w-full animate-image-reveal block cursor-pointer"
-                onClick={() => setLightboxUrl(url)}
-              />
+              <div className="aspect-square overflow-hidden rounded-xl">
+                <img
+                  src={url}
+                  alt={`${prompt} (${i + 1})`}
+                  className="w-full h-full object-cover animate-image-reveal block cursor-pointer"
+                  onClick={() => setLightboxUrl(url)}
+                />
+              </div>
               <div className="absolute bottom-4 right-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={() => handleRefine(url, i)}

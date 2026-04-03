@@ -11,5 +11,6 @@ export interface Chat {
   title: string;
   model: string;
   createdAt: string;
+  thumbnail?: string | null;
   messages: Message[];
 }

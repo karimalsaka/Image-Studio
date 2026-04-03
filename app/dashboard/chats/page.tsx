@@ -28,7 +28,7 @@ export default function ChatsPage() {
   return (
     <div>
       <h1 className="font-display text-3xl font-medium tracking-tight text-gray-900 mb-1">
-        Chat History
+        History
       </h1>
       <p className="text-gray-400 text-sm mb-8">
         Your past image refinement conversations.
@@ -52,24 +52,41 @@ export default function ChatsPage() {
           </Link>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {chats.map((chat) => (
             <Link
               key={chat.id}
               href={`/dashboard/chat/${chat.id}`}
-              className="block rounded-xl border border-stone-200 bg-stone-50 px-5 py-4 hover:border-stone-300 hover:bg-white transition-colors"
+              className="group rounded-xl border border-stone-200 bg-stone-50 overflow-hidden hover:border-stone-300 hover:shadow-sm transition-all"
             >
-              <div className="flex items-center justify-between">
-                <h2 className="text-[15px] font-medium text-gray-900 truncate max-w-sm">
+              <div className="aspect-square bg-stone-100 overflow-hidden">
+                {chat.thumbnail ? (
+                  <img
+                    src={chat.thumbnail}
+                    alt=""
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21z" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+              <div className="px-3 py-2.5">
+                <h2 className="text-[13px] font-medium text-gray-900 truncate">
                   {chat.title}
                 </h2>
-                <span className="text-xs text-gray-400 shrink-0 ml-4">
+                <p className="text-[11px] text-gray-400 mt-0.5">
                   {new Date(chat.createdAt).toLocaleDateString(undefined, {
                     month: "short",
                     day: "numeric",
-                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
                   })}
-                </span>
+                </p>
               </div>
             </Link>
           ))}

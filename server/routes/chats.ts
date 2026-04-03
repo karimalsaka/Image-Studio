@@ -48,8 +48,22 @@ router.get('/', async (req, res) => {
         const chats = await prisma.chat.findMany({
             where: { userId },
             orderBy: { createdAt: 'desc' },
+            include: {
+                messages: {
+                    where: { role: 'assistant', imageUrl: { not: null } },
+                    orderBy: { createdAt: 'desc' },
+                    take: 1,
+                    select: { imageUrl: true },
+                },
+            },
         });
-        res.json(chats);
+
+        const result = chats.map(({ messages, ...chat }) => ({
+            ...chat,
+            thumbnail: messages[0]?.imageUrl ?? null,
+        }));
+
+        res.json(result);
     } catch (error) {
         const { status, message } = toErrorResponse(error, 'Could not load chats. Please try again.');
         res.status(status).json({ error: message });

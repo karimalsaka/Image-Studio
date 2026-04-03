@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import PromptTextField from "./PromptTextField";
 import Dropdown from "@/app/components/Dropdown";
-import { generateImage } from "@/app/services/api";
+import { generateImage, createChat } from "@/app/services/api";
 import { ApiError } from "@/app/services/errors";
+import { MODELS, SIZES } from "@/app/shared/constants";
 
 const suggestions = [
   {
@@ -43,29 +45,14 @@ const suggestions = [
 ];
 
 export default function Studio() {
-  const MODELS = [
-    { id: 'google/gemini-2.5-flash-image', label: 'Gemini 2.5 Flash' },
-    { id: 'google/gemini-3.1-flash-image-preview', label: 'Gemini 3.1 Flash' },
-    { id: 'google/gemini-3-pro-image-preview', label: 'Gemini 3 Pro' },
-    { id: 'openai/gpt-5-image-mini', label: 'GPT-5 Image Mini' },
-    { id: 'openai/gpt-5-image', label: 'GPT-5 Image' },
-  ];
-  
-  const SIZES = [
-    { id: '1:1', label: 'Square (1:1)' },
-    { id: '16:9', label: 'Landscape (16:9)' },
-    { id: '9:16', label: 'Portrait (9:16)' },
-    { id: '4:3', label: 'Standard (4:3)' },
-    { id: '3:2', label: 'Photo (3:2)' },
-    { id: '21:9', label: 'Ultra Wide (21:9)' },
-  ];
-  
+  const router = useRouter();
   const [prompt, setPrompt] = useState("");
-  const [model, setModel] = useState(MODELS[0].id)
-  const [imageSize, setImageSize] = useState(SIZES[0].id)
+  const [model, setModel] = useState(MODELS[0].id);
+  const [imageSize, setImageSize] = useState(SIZES[0].id);
   const [isLoading, setIsLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
   const [error, setError] = useState("");
+  const [isRefining, setIsRefining] = useState(false);
 
   const handleGenerate = async () => {
     if (!prompt.trim() || isLoading) return;
@@ -73,7 +60,7 @@ export default function Studio() {
     setError("");
     try {
       const data = await generateImage(prompt, imageSize, model);
-      setImageUrl(data.choices[0].message.images[0].image_url.url);
+      setImageUrl(data.imageUrl);
     } catch (error) {
       if (error instanceof ApiError) {
         console.error(`Error ${error.status}: ${error.message}`);
@@ -85,7 +72,20 @@ export default function Studio() {
       setIsLoading(false);
     }
   };
-  
+
+  const handleRefine = async () => {
+    if (isRefining) return;
+    setIsRefining(true);
+    try {
+      // Using a hardcoded userId for now — replace with real auth later
+      const chat = await createChat(prompt, model, "demo-user", imageUrl);
+      router.push(`/dashboard/chat/${chat.id}`);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Failed to start refinement session.");
+      setIsRefining(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Prompt card */}
@@ -169,7 +169,17 @@ export default function Studio() {
             alt={prompt}
             className="rounded-xl max-w-lg animate-image-reveal block"
           />
-          <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute bottom-4 right-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={handleRefine}
+              disabled={isRefining}
+              className="h-8 px-3 rounded-full bg-white border border-stone-200 flex items-center gap-1.5 hover:bg-stone-50 transition-colors shadow-sm text-[13px] font-medium text-gray-700 cursor-pointer disabled:opacity-50"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182M2.985 19.644l3.181-3.183" />
+              </svg>
+              {isRefining ? "Opening…" : "Refine"}
+            </button>
             <a
               href={imageUrl}
               target="_blank"

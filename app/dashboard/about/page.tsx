@@ -1,6 +1,4 @@
-"use client";
-
-import { motion } from "motion/react";
+import FadeIn from "@/app/components/FadeIn";
 
 const features = [
   {
@@ -35,38 +33,26 @@ const features = [
 export default function About() {
   return (
     <div>
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      >
+      <FadeIn>
         <h1 className="font-display text-3xl font-medium tracking-tight text-gray-900 mb-1">
           About
         </h1>
         <p className="text-gray-400 text-sm mb-10 max-w-lg">
           Image Studio lets you generate images using AI. Type a prompt, and let the model do the rest.
         </p>
-      </motion.div>
+      </FadeIn>
 
       <div className="grid gap-4 sm:grid-cols-3">
         {features.map(({ icon, title, description }, i) => (
-          <motion.div
-            key={title}
-            className="rounded-2xl border border-stone-200 p-5 bg-stone-50 hover:bg-stone-100 transition-colors"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              delay: 0.1 + i * 0.08,
-              duration: 0.5,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-          >
-            <div className="w-9 h-9 rounded-xl bg-stone-100 flex items-center justify-center mb-3">
-              {icon}
+          <FadeIn key={title} delay={0.1 + i * 0.08}>
+            <div className="rounded-2xl border border-stone-200 p-5 bg-stone-50 hover:bg-stone-100 transition-colors">
+              <div className="w-9 h-9 rounded-xl bg-stone-100 flex items-center justify-center mb-3">
+                {icon}
+              </div>
+              <h3 className="font-semibold text-sm text-gray-900 mb-1.5">{title}</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">{description}</p>
             </div>
-            <h3 className="font-semibold text-sm text-gray-900 mb-1.5">{title}</h3>
-            <p className="text-gray-400 text-sm leading-relaxed">{description}</p>
-          </motion.div>
+          </FadeIn>
         ))}
       </div>
     </div>

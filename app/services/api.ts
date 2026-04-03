@@ -2,21 +2,51 @@ import { ApiError } from "./errors";
 
 const API_URL = 'http://localhost:4000';
 
-export async function generateImage(prompt: string, size?: string, model?: string) {
-    const body = { prompt, size, model };
-    console.log(`[API] POST ${API_URL}/api/generate`, body);
+async function request(path: string, options?: RequestInit) {
+    const method = options?.method || 'GET';
+    const body = options?.body ? JSON.parse(options.body as string) : undefined;
+    console.log(`[API] ${method} ${API_URL}${path}`, body ?? '');
 
-    const response = await fetch(`${API_URL}/api/generate`, {
-        method: 'POST',
+    const response = await fetch(`${API_URL}${path}`, {
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-    })
-
+        ...options,
+    });
     const data = await response.json();
 
     if (!response.ok) {
-        throw new ApiError(data.error || 'Failed to generate image', response.status)
+        console.error(`[API] ${method} ${path} failed (${response.status}):`, data);
+        throw new ApiError(data.error || 'Request failed', response.status);
     }
 
-    return data
+    console.log(`[API] ${method} ${path} -> ${response.status}`);
+    return data;
+}
+
+export async function generateImage(prompt: string, size?: string, model?: string) {
+    return request('/api/generate', {
+        method: 'POST',
+        body: JSON.stringify({ prompt, size, model }),
+    });
+}
+
+export async function createChat(title: string, model: string, userId: string, imageUrl: string) {
+    return request('/api/chats', {
+        method: 'POST',
+        body: JSON.stringify({ title, model, userId, imageUrl }),
+    });
+}
+
+export async function getChats(userId: string) {
+    return request(`/api/chats?userId=${encodeURIComponent(userId)}`);
+}
+
+export async function getChat(id: string) {
+    return request(`/api/chats/${encodeURIComponent(id)}`);
+}
+
+export async function sendMessage(chatId: string, content: string, model?: string) {
+    return request(`/api/chats/${encodeURIComponent(chatId)}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({ content, model }),
+    });
 }

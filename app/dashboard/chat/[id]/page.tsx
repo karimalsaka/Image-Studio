@@ -103,7 +103,7 @@ export default function ChatPage({
       {/* Messages */}
       <div className="flex-1 overflow-y-auto">
         <div className="px-8 lg:px-16 py-6">
-          <ChatThread messages={messages} />
+          <ChatThread messages={messages} isGenerating={isSending} />
         </div>
       </div>
 

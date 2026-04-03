@@ -9,39 +9,10 @@ import { ApiError } from "@/app/services/errors";
 import { MODELS, SIZES, COUNTS } from "@/app/shared/constants";
 
 const suggestions = [
-  {
-    icon: (
-      <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42" />
-      </svg>
-    ),
-    label: "Oil painting landscape",
-  },
-  {
-    icon: (
-      <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0z" />
-      </svg>
-    ),
-    label: "Product photography",
-  },
-  {
-    icon: (
-      <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21z" />
-      </svg>
-    ),
-    label: "Abstract wallpaper",
-  },
-  {
-    icon: (
-      <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09zm8.446-7.189L18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456z" />
-      </svg>
-    ),
-    label: "Fantasy character",
-  },
+  { emoji: "🏔", label: "A cabin on a misty mountain at golden hour, cinematic lighting" },
+  { emoji: "🐉", label: "A dragon made of stained glass, sunlight pouring through" },
+  { emoji: "🌌", label: "An astronaut floating through a nebula shaped like a jellyfish" },
+  { emoji: "🏛", label: "Ancient Greek temple overgrown with bioluminescent vines" },
 ];
 
 export default function Studio() {
@@ -89,9 +60,9 @@ export default function Studio() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Prompt card */}
-      <div className="rounded-2xl border border-stone-200 bg-stone-50 p-5 shadow-sm">
+      <div className="bg-[var(--surface-raised)] rounded-2xl border border-[var(--border)] p-5 shadow-sm shadow-black/3">
         <PromptTextField
           prompt={prompt}
           onPromptChanged={(value) => {
@@ -102,7 +73,7 @@ export default function Studio() {
           disabled={isLoading}
         />
 
-        <div className="flex items-center justify-end gap-2 mt-2">
+        <div className="flex items-center justify-end gap-1.5 mt-2">
           <Dropdown options={MODELS} value={model} onChange={setModel} />
           <Dropdown options={SIZES} value={imageSize} onChange={setImageSize} />
           <Dropdown options={COUNTS} value={imageCount} onChange={setImageCount} />
@@ -110,16 +81,16 @@ export default function Studio() {
           <button
             onClick={handleGenerate}
             disabled={!prompt.trim() || isLoading}
-            className="w-9 h-9 rounded-full bg-gray-900 flex items-center justify-center hover:bg-gray-800 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shrink-0"
+            className="w-8 h-8 rounded-full bg-[var(--accent)] flex items-center justify-center hover:bg-[var(--accent-hover)] transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer shrink-0 ml-1"
           >
             {isLoading ? (
-              <span className="loading-dots flex items-center gap-0.5 text-white">
+              <span className="loading-dots flex items-center gap-0.5 text-[var(--accent-text)]">
                 <span></span>
                 <span></span>
                 <span></span>
               </span>
             ) : (
-              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-3.5 h-3.5 text-[var(--accent-text)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
               </svg>
             )}
@@ -127,37 +98,39 @@ export default function Studio() {
         </div>
       </div>
 
-      {/* Suggestion pills */}
-      <div className="flex flex-wrap gap-2.5">
-        {suggestions.map(({ icon, label }) => (
+      {/* Suggestions */}
+      <div className="flex flex-wrap gap-2">
+        {suggestions.map(({ emoji, label }) => (
           <button
             key={label}
             onClick={() => setPrompt(label)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-stone-200 bg-white text-gray-700 text-[13px] font-medium hover:border-stone-300 hover:bg-stone-50 transition-colors cursor-pointer"
+            className="group flex items-start gap-2.5 px-3.5 py-2.5 rounded-xl bg-[var(--surface-raised)] border border-[var(--border)] hover:border-[var(--border-hover)] hover:shadow-sm hover:shadow-black/3 transition-all cursor-pointer text-left"
           >
-            {icon}
-            {label}
+            <span className="text-base leading-none mt-0.5">{emoji}</span>
+            <span className="text-[12px] leading-snug text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors line-clamp-2">
+              {label}
+            </span>
           </button>
         ))}
       </div>
 
       {/* Error */}
       {error && (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-200">
-          <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-red-50 border border-red-100">
+          <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 3.75h.008v.008H12v-.008z" />
           </svg>
-          <p className="text-red-600 text-sm">{error}</p>
+          <p className="text-red-500 text-sm">{error}</p>
         </div>
       )}
 
       {/* Loading */}
       {isLoading && (
-        <div className="rounded-2xl border border-stone-200 overflow-hidden bg-stone-50">
-          <div className="h-64 flex items-center justify-center">
+        <div className="bg-[var(--surface-raised)] rounded-2xl border border-[var(--border)] overflow-hidden">
+          <div className="h-56 flex items-center justify-center shimmer">
             <div className="text-center">
-              <div className="w-8 h-8 rounded-full border-2 border-stone-300 border-t-gray-900 animate-spin mx-auto mb-3" />
-              <p className="text-gray-400 text-sm">
+              <div className="w-6 h-6 rounded-full border-2 border-[var(--border)] border-t-[var(--text-primary)] animate-spin mx-auto mb-3" />
+              <p className="text-[var(--text-tertiary)] text-[13px]">
                 Creating {Number(imageCount) > 1 ? `${imageCount} images` : "your image"}...
               </p>
             </div>
@@ -167,29 +140,27 @@ export default function Studio() {
 
       {/* Generated images */}
       {imageUrls.length > 0 && !isLoading && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2.5">
           {imageUrls.map((url, i) => (
             <div
               key={url}
-              className="rounded-2xl border border-stone-200 overflow-hidden group relative bg-stone-50 p-2"
+              className="rounded-xl overflow-hidden group relative bg-[var(--surface-inset)]"
             >
-              <div className="aspect-square overflow-hidden rounded-xl">
+              <div className="aspect-square overflow-hidden">
                 <img
                   src={url}
                   alt={`${prompt} (${i + 1})`}
-                  className="w-full h-full object-cover animate-image-reveal block cursor-pointer"
+                  className="w-full h-full object-cover animate-image-reveal block cursor-pointer hover:scale-[1.03] transition-transform duration-300"
                   onClick={() => setLightboxUrl(url)}
                 />
               </div>
-              <div className="absolute bottom-4 right-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none" />
+              <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={() => handleRefine(url, i)}
                   disabled={refiningIndex !== null}
-                  className="h-8 px-3 rounded-full bg-white border border-stone-200 flex items-center gap-1.5 hover:bg-stone-50 transition-colors shadow-sm text-[13px] font-medium text-gray-700 cursor-pointer disabled:opacity-50"
+                  className="h-7 px-2.5 rounded-full bg-white/90 backdrop-blur-sm flex items-center gap-1 text-[11px] font-semibold text-[var(--text-primary)] cursor-pointer disabled:opacity-50 hover:bg-white transition-colors"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182M2.985 19.644l3.181-3.183" />
-                  </svg>
                   {refiningIndex === i ? "Opening..." : "Refine"}
                 </button>
                 <a
@@ -197,9 +168,9 @@ export default function Studio() {
                   target="_blank"
                   rel="noopener noreferrer"
                   download
-                  className="w-8 h-8 rounded-full bg-white border border-stone-200 flex items-center justify-center hover:bg-stone-50 transition-colors shadow-sm"
+                  className="w-7 h-7 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-colors"
                 >
-                  <svg className="w-3.5 h-3.5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className="w-3 h-3 text-[var(--text-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                   </svg>
                 </a>
@@ -212,7 +183,7 @@ export default function Studio() {
       {/* Lightbox */}
       {lightboxUrl && (
         <div
-          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-6"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-8"
           onClick={() => setLightboxUrl(null)}
         >
           <div
@@ -222,13 +193,13 @@ export default function Studio() {
             <img
               src={lightboxUrl}
               alt={prompt}
-              className="rounded-2xl max-w-full max-h-[90vh] object-contain animate-image-reveal"
+              className="rounded-2xl max-w-full max-h-[90vh] object-contain animate-image-reveal shadow-2xl"
             />
             <button
               onClick={() => setLightboxUrl(null)}
-              className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/70 transition-colors cursor-pointer"
+              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center hover:bg-black/60 transition-colors cursor-pointer"
             >
-              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
               </svg>
             </button>
@@ -240,11 +211,8 @@ export default function Studio() {
                   handleRefine(lightboxUrl, idx !== -1 ? idx : 0);
                 }}
                 disabled={refiningIndex !== null}
-                className="h-9 px-4 rounded-full bg-white/90 flex items-center gap-1.5 hover:bg-white transition-colors text-[13px] font-medium text-gray-700 cursor-pointer disabled:opacity-50"
+                className="h-8 px-4 rounded-full bg-white text-[13px] font-semibold text-[var(--text-primary)] cursor-pointer disabled:opacity-50 hover:bg-white/90 transition-colors shadow-lg"
               >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182M2.985 19.644l3.181-3.183" />
-                </svg>
                 Refine
               </button>
               <a
@@ -252,11 +220,8 @@ export default function Studio() {
                 target="_blank"
                 rel="noopener noreferrer"
                 download
-                className="h-9 px-4 rounded-full bg-white/90 flex items-center gap-1.5 hover:bg-white transition-colors text-[13px] font-medium text-gray-700"
+                className="h-8 px-4 rounded-full bg-white/20 backdrop-blur-sm border border-white/20 text-[13px] font-medium text-white hover:bg-white/30 transition-colors"
               >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                </svg>
                 Download
               </a>
             </div>

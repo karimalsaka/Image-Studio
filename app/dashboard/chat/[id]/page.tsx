@@ -40,7 +40,6 @@ export default function ChatPage({
       setIsSending(true);
       setError("");
 
-      // Optimistic user message
       const tempId = `temp-${Date.now()}`;
       const tempUserMsg: Message = {
         id: tempId,
@@ -54,7 +53,6 @@ export default function ChatPage({
         const assistantMsg = await sendMessage(id, content, model);
         setMessages((prev) => [...prev, assistantMsg]);
       } catch (err) {
-        // Roll back the optimistic message
         setMessages((prev) => prev.filter((m) => m.id !== tempId));
         setError(
           err instanceof ApiError
@@ -71,7 +69,7 @@ export default function ChatPage({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 rounded-full border-2 border-stone-300 border-t-gray-900 animate-spin" />
+        <div className="w-6 h-6 rounded-full border-2 border-[var(--border)] border-t-[var(--text-primary)] animate-spin" />
       </div>
     );
   }
@@ -79,10 +77,10 @@ export default function ChatPage({
   if (!chat && error) {
     return (
       <div className="text-center py-16">
-        <p className="text-red-600 text-sm">{error}</p>
+        <p className="text-red-500 text-sm">{error}</p>
         <Link
           href="/dashboard"
-          className="text-sm text-gray-500 hover:text-gray-700 mt-4 inline-block"
+          className="text-sm text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] mt-4 inline-block"
         >
           Back to Studio
         </Link>
@@ -97,23 +95,13 @@ export default function ChatPage({
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard"
-            className="w-8 h-8 rounded-full border border-stone-200 flex items-center justify-center hover:bg-stone-50 transition-colors"
+            className="w-7 h-7 rounded-full bg-[var(--surface-inset)] flex items-center justify-center hover:bg-[var(--border)] transition-colors"
           >
-            <svg
-              className="w-4 h-4 text-gray-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.75 19.5 8.25 12l7.5-7.5"
-              />
+            <svg className="w-3.5 h-3.5 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
             </svg>
           </Link>
-          <h1 className="font-display text-lg font-medium text-gray-900 truncate max-w-xs">
+          <h1 className="font-display text-lg font-medium text-[var(--text-primary)] truncate max-w-xs">
             {chat?.title}
           </h1>
         </div>
@@ -125,21 +113,11 @@ export default function ChatPage({
 
       {/* Error */}
       {error && (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-200 mb-3">
-          <svg
-            className="w-4 h-4 text-red-500 shrink-0"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 3.75h.008v.008H12v-.008z"
-            />
+        <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-red-50 border border-red-100 mb-3">
+          <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 3.75h.008v.008H12v-.008z" />
           </svg>
-          <p className="text-red-600 text-sm">{error}</p>
+          <p className="text-red-500 text-sm">{error}</p>
         </div>
       )}
 

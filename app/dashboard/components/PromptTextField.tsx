@@ -22,7 +22,7 @@ export default function PromptTextField({
         }
       }}
       placeholder="Describe the image you want to create..."
-      className="w-full min-h-[80px] max-h-[160px] bg-transparent border-none outline-none resize-none text-[#1a1a1a] text-[15px] leading-relaxed placeholder:text-[#a09a94]"
+      className="w-full min-h-[80px] max-h-[160px] bg-transparent border-none outline-none resize-none text-[var(--text-primary)] text-[15px] leading-relaxed placeholder:text-[var(--text-tertiary)]"
       rows={3}
       disabled={disabled}
     />

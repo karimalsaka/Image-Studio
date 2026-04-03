@@ -30,7 +30,7 @@ export default function RootLayout({
       lang="en"
       className={`${playfair.variable} ${dmSans.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-gradient-mesh text-gray-900">
+      <body className="min-h-full flex flex-col bg-gradient-mesh">
         <Nav />
         {children}
       </body>

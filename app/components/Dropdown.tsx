@@ -34,11 +34,11 @@ export default function Dropdown({ options, value, onChange }: DropdownProps) {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full border border-stone-200 bg-white text-[13px] font-medium text-gray-700 hover:border-stone-300 hover:bg-stone-50 transition-colors cursor-pointer"
+        className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-[var(--surface-inset)] text-[12px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
       >
         {selected?.label}
         <svg
-          className={`w-3 h-3 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`w-3 h-3 text-[var(--text-tertiary)] transition-transform ${open ? "rotate-180" : ""}`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -49,7 +49,7 @@ export default function Dropdown({ options, value, onChange }: DropdownProps) {
       </button>
 
       {open && (
-        <div className="absolute bottom-full mb-1.5 left-0 min-w-[180px] bg-white rounded-xl border border-stone-200 shadow-lg shadow-black/8 py-1 z-50 animate-in">
+        <div className="absolute bottom-full mb-1.5 left-0 min-w-[180px] bg-[var(--surface-raised)] rounded-xl border border-[var(--border)] shadow-lg shadow-black/6 py-1 z-50 animate-in">
           {options.map((option) => {
             const isSelected = option.id === value;
             return (
@@ -59,15 +59,15 @@ export default function Dropdown({ options, value, onChange }: DropdownProps) {
                   onChange(option.id);
                   setOpen(false);
                 }}
-                className={`w-full text-left px-3 py-2 text-[13px] transition-colors cursor-pointer flex items-center justify-between ${
+                className={`w-full text-left px-3.5 py-2 text-[13px] transition-colors cursor-pointer flex items-center justify-between ${
                   isSelected
-                    ? "text-gray-900 font-medium bg-stone-50"
-                    : "text-gray-600 hover:bg-stone-50 hover:text-gray-900"
+                    ? "text-[var(--text-primary)] font-medium"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-inset)]"
                 }`}
               >
                 {option.label}
                 {isSelected && (
-                  <svg className="w-3.5 h-3.5 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <svg className="w-3.5 h-3.5 text-[var(--text-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                   </svg>
                 )}

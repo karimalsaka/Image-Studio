@@ -18,21 +18,21 @@ export default function ChatThread({ messages }: { messages: Message[] }) {
           className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
         >
           {msg.role === "user" ? (
-            <div className="max-w-[80%] rounded-2xl bg-gray-900 text-white px-4 py-3 text-[15px] leading-relaxed">
+            <div className="max-w-[80%] rounded-2xl bg-[var(--accent)] text-[var(--accent-text)] px-4 py-3 text-[15px] leading-relaxed">
               {msg.content}
             </div>
           ) : (
             <div className="max-w-lg">
               {msg.imageUrl ? (
-                <div className="rounded-2xl border border-stone-200 overflow-hidden bg-stone-50 p-2">
+                <div className="rounded-xl overflow-hidden">
                   <img
                     src={msg.imageUrl}
                     alt="Generated image"
-                    className="rounded-xl max-w-full animate-image-reveal block"
+                    className="max-w-full animate-image-reveal block rounded-xl"
                   />
                 </div>
               ) : (
-                <div className="rounded-2xl bg-stone-100 px-4 py-3 text-[15px] text-gray-700 leading-relaxed">
+                <div className="rounded-2xl bg-[var(--surface-inset)] px-4 py-3 text-[15px] text-[var(--text-secondary)] leading-relaxed">
                   {msg.content || "Image generation failed."}
                 </div>
               )}

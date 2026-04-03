@@ -5,40 +5,55 @@
   --font-display: var(--font-playfair);
 }
 
+:root {
+  --surface: #fafaf9;
+  --surface-raised: #ffffff;
+  --surface-inset: #f3f2f0;
+  --border: #e8e5e1;
+  --border-hover: #d5d1cc;
+  --text-primary: #1a1816;
+  --text-secondary: #6b6560;
+  --text-tertiary: #a09a94;
+  --accent: #1a1816;
+  --accent-hover: #2d2a26;
+  --accent-text: #ffffff;
+}
+
 html, body {
-  background: #ffffff;
-  color: #1a1a1a;
+  background: var(--surface);
+  color: var(--text-primary);
   font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
 ::selection {
-  background: rgba(251, 146, 60, 0.2);
-  color: #1a1a1a;
+  background: rgba(26, 24, 22, 0.12);
+  color: var(--text-primary);
 }
 
-/* ─── Warm gradient mesh for landing ─── */
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+
+/* ─── Landing background ─── */
 .bg-gradient-mesh {
-  background:
-    radial-gradient(ellipse 80% 60% at 20% 40%, rgba(200, 160, 230, 0.45) 0%, transparent 70%),
-    radial-gradient(ellipse 70% 50% at 80% 30%, rgba(140, 190, 255, 0.4) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 50% at 50% 80%, rgba(255, 160, 140, 0.35) 0%, transparent 70%),
-    radial-gradient(ellipse 50% 40% at 70% 60%, rgba(255, 200, 150, 0.3) 0%, transparent 70%),
-    #ffffff;
+  background: var(--surface);
 }
 
 /* ─── Image reveal ─── */
 @keyframes image-reveal {
-  from { opacity: 0; transform: scale(0.98); filter: blur(6px); }
+  from { opacity: 0; transform: scale(0.97); filter: blur(8px); }
   to { opacity: 1; transform: scale(1); filter: blur(0); }
 }
 .animate-image-reveal {
-  animation: image-reveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: image-reveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* ─── Loading dots ─── */
 @keyframes pulse-dot {
-  0%, 80%, 100% { opacity: 0.25; transform: scale(0.85); }
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.85); }
   40% { opacity: 1; transform: scale(1); }
 }
 .loading-dots span {
@@ -54,9 +69,20 @@ html, body {
 
 /* ─── Dropdown animation ─── */
 @keyframes animate-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .animate-in {
   animation: animate-in 0.15s ease-out forwards;
+}
+
+/* ─── Shimmer ─── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, transparent 25%, rgba(0,0,0,0.02) 50%, transparent 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
 }

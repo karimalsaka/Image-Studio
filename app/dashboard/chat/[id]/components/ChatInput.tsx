@@ -17,7 +17,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
   };
 
   return (
-    <div className="rounded-2xl border border-stone-200 bg-stone-50 p-3 shadow-sm flex items-end gap-2">
+    <div className="bg-[var(--surface-raised)] rounded-2xl border border-[var(--border)] p-3 shadow-sm shadow-black/3 flex items-end gap-2">
       <textarea
         value={value}
         onChange={(e) => setValue(e.target.value)}
@@ -30,21 +30,21 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
         placeholder="Describe changes to the image..."
         disabled={disabled}
         rows={1}
-        className="flex-1 min-h-[40px] max-h-[120px] bg-transparent border-none outline-none resize-none text-[#1a1a1a] text-[15px] leading-relaxed placeholder:text-[#a09a94]"
+        className="flex-1 min-h-[40px] max-h-[120px] bg-transparent border-none outline-none resize-none text-[var(--text-primary)] text-[15px] leading-relaxed placeholder:text-[var(--text-tertiary)]"
       />
       <button
         onClick={handleSubmit}
         disabled={!value.trim() || disabled}
-        className="w-9 h-9 rounded-full bg-gray-900 flex items-center justify-center hover:bg-gray-800 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shrink-0"
+        className="w-8 h-8 rounded-full bg-[var(--accent)] flex items-center justify-center hover:bg-[var(--accent-hover)] transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer shrink-0"
       >
         {disabled ? (
-          <span className="loading-dots flex items-center gap-0.5 text-white">
+          <span className="loading-dots flex items-center gap-0.5 text-[var(--accent-text)]">
             <span></span>
             <span></span>
             <span></span>
           </span>
         ) : (
-          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-3.5 h-3.5 text-[var(--accent-text)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
           </svg>
         )}

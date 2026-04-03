@@ -3,7 +3,7 @@ import RecentChats from "./components/RecentChats"
 
 export default function Dashboard() {
   return (
-    <div>
+    <div className="max-w-5xl mx-auto px-6 py-10">
       <div className="mb-8">
         <h1 className="font-display text-3xl font-medium tracking-tight text-[var(--text-primary)] mb-1">
           Generate an Image

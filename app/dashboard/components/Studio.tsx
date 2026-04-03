@@ -7,6 +7,7 @@ import Dropdown from "@/app/components/Dropdown";
 import { generateImage, createChat } from "@/app/services/api";
 import { ApiError } from "@/app/services/errors";
 import { MODELS, SIZES, COUNTS } from "@/app/shared/constants";
+import ImageLightbox from "@/app/components/ImageLightbox";
 
 const suggestions = [
   { emoji: "🏔", label: "A cabin on a misty mountain at golden hour, cinematic lighting" },
@@ -25,7 +26,6 @@ export default function Studio() {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [refiningIndex, setRefiningIndex] = useState<number | null>(null);
-  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     if (!prompt.trim() || isLoading) return;
@@ -147,11 +147,11 @@ export default function Studio() {
               className="rounded-xl overflow-hidden group relative bg-[var(--surface-inset)]"
             >
               <div className="aspect-square overflow-hidden">
-                <img
+                <ImageLightbox
                   src={url}
                   alt={`${prompt} (${i + 1})`}
-                  className="w-full h-full object-cover animate-image-reveal block cursor-pointer hover:scale-[1.03] transition-transform duration-300"
-                  onClick={() => setLightboxUrl(url)}
+                  className="w-full h-full object-cover animate-image-reveal block hover:scale-[1.03] transition-transform duration-300"
+                  onRefine={() => handleRefine(url, i)}
                 />
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none" />
@@ -180,54 +180,6 @@ export default function Studio() {
         </div>
       )}
 
-      {/* Lightbox */}
-      {lightboxUrl && (
-        <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-8"
-          onClick={() => setLightboxUrl(null)}
-        >
-          <div
-            className="relative max-w-4xl max-h-[90vh]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img
-              src={lightboxUrl}
-              alt={prompt}
-              className="rounded-2xl max-w-full max-h-[90vh] object-contain animate-image-reveal shadow-2xl"
-            />
-            <button
-              onClick={() => setLightboxUrl(null)}
-              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center hover:bg-black/60 transition-colors cursor-pointer"
-            >
-              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="absolute bottom-3 right-3 flex items-center gap-2">
-              <button
-                onClick={() => {
-                  const idx = imageUrls.indexOf(lightboxUrl);
-                  setLightboxUrl(null);
-                  handleRefine(lightboxUrl, idx !== -1 ? idx : 0);
-                }}
-                disabled={refiningIndex !== null}
-                className="h-8 px-4 rounded-full bg-white text-[13px] font-semibold text-[var(--text-primary)] cursor-pointer disabled:opacity-50 hover:bg-white/90 transition-colors shadow-lg"
-              >
-                Refine
-              </button>
-              <a
-                href={lightboxUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                download
-                className="h-8 px-4 rounded-full bg-white/20 backdrop-blur-sm border border-white/20 text-[13px] font-medium text-white hover:bg-white/30 transition-colors"
-              >
-                Download
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

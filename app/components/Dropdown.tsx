@@ -11,9 +11,10 @@ interface DropdownProps {
   options: DropdownOption[];
   value: string;
   onChange: (value: string) => void;
+  direction?: "up" | "down";
 }
 
-export default function Dropdown({ options, value, onChange }: DropdownProps) {
+export default function Dropdown({ options, value, onChange, direction = "up" }: DropdownProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -49,7 +50,7 @@ export default function Dropdown({ options, value, onChange }: DropdownProps) {
       </button>
 
       {open && (
-        <div className="absolute bottom-full mb-1.5 left-0 min-w-[180px] bg-[var(--surface-raised)] rounded-xl border border-[var(--border)] shadow-lg shadow-black/6 py-1 z-50 animate-in">
+        <div className={`absolute ${direction === "up" ? "bottom-full mb-1.5" : "top-full mt-1.5"} right-0 min-w-[180px] bg-[var(--surface-raised)] rounded-xl border border-[var(--border)] shadow-lg shadow-black/6 py-1 z-50 animate-in`}>
           {options.map((option) => {
             const isSelected = option.id === value;
             return (

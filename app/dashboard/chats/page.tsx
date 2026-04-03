@@ -26,7 +26,7 @@ export default function ChatsPage() {
   }
 
   return (
-    <div>
+    <div className="max-w-5xl mx-auto px-6 py-10">
       <h1 className="font-display text-3xl font-medium tracking-tight text-[var(--text-primary)] mb-1">
         History
       </h1>

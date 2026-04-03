@@ -32,7 +32,7 @@ const features = [
 
 export default function About() {
   return (
-    <div>
+    <div className="max-w-5xl mx-auto px-6 py-10">
       <FadeIn>
         <h1 className="font-display text-3xl font-medium tracking-tight text-[var(--text-primary)] mb-1">
           About

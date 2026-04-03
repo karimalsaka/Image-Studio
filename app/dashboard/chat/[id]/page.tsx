@@ -68,7 +68,7 @@ export default function ChatPage({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex-1 flex items-center justify-center">
         <div className="w-6 h-6 rounded-full border-2 border-[var(--border)] border-t-[var(--text-primary)] animate-spin" />
       </div>
     );
@@ -76,53 +76,53 @@ export default function ChatPage({
 
   if (!chat && error) {
     return (
-      <div className="text-center py-16">
-        <p className="text-red-500 text-sm">{error}</p>
-        <Link
-          href="/dashboard"
-          className="text-sm text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] mt-4 inline-block"
-        >
-          Back to Studio
-        </Link>
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 text-sm">{error}</p>
+          <Link
+            href="/dashboard"
+            className="text-sm text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] mt-4 inline-block"
+          >
+            Back to Studio
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-136px)]">
+    <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard"
-            className="w-7 h-7 rounded-full bg-[var(--surface-inset)] flex items-center justify-center hover:bg-[var(--border)] transition-colors"
-          >
-            <svg className="w-3.5 h-3.5 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-            </svg>
-          </Link>
-          <h1 className="font-display text-lg font-medium text-[var(--text-primary)] truncate max-w-xs">
-            {chat?.title}
-          </h1>
-        </div>
-        <Dropdown options={MODELS} value={model} onChange={setModel} />
+      <div className="flex items-center justify-between px-8 h-12 border-b border-[var(--border)] shrink-0">
+        <span className="text-[14px] font-medium text-[var(--text-primary)]">
+          {chat?.title}
+        </span>
+        <Dropdown options={MODELS} value={model} onChange={setModel} direction="down" />
       </div>
 
       {/* Messages */}
-      <ChatThread messages={messages} />
+      <div className="flex-1 overflow-y-auto">
+        <div className="px-8 lg:px-16 py-6">
+          <ChatThread messages={messages} />
+        </div>
+      </div>
 
       {/* Error */}
       {error && (
-        <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-red-50 border border-red-100 mb-3">
-          <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 3.75h.008v.008H12v-.008z" />
-          </svg>
-          <p className="text-red-500 text-sm">{error}</p>
+        <div className="px-8 lg:px-16">
+          <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg bg-red-50 border border-red-100 mb-3">
+            <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 3.75h.008v.008H12v-.008z" />
+            </svg>
+            <p className="text-red-500 text-[13px]">{error}</p>
+          </div>
         </div>
       )}
 
       {/* Input */}
-      <ChatInput onSend={handleSend} disabled={isSending} />
+      <div className="px-8 lg:px-16 pb-5 pt-3 border-t border-[var(--border)]">
+        <ChatInput onSend={handleSend} disabled={isSending} />
+      </div>
     </div>
   );
 }

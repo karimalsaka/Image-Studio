@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { Message } from "@/app/shared/types";
+import ImageLightbox from "@/app/components/ImageLightbox";
 
 export default function ChatThread({ messages }: { messages: Message[] }) {
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -11,28 +12,25 @@ export default function ChatThread({ messages }: { messages: Message[] }) {
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto space-y-4 pb-4">
+    <div className="space-y-6">
       {messages.map((msg) => (
-        <div
-          key={msg.id}
-          className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-        >
+        <div key={msg.id}>
           {msg.role === "user" ? (
-            <div className="max-w-[80%] rounded-2xl bg-[var(--accent)] text-[var(--accent-text)] px-4 py-3 text-[15px] leading-relaxed">
-              {msg.content}
+            <div className="flex justify-end">
+              <div className="max-w-[70%] rounded-2xl bg-[var(--surface-inset)] border border-[var(--border)] px-4 py-3 text-[15px] text-[var(--text-primary)] leading-relaxed">
+                {msg.content}
+              </div>
             </div>
           ) : (
-            <div className="max-w-lg">
+            <div>
               {msg.imageUrl ? (
-                <div className="rounded-xl overflow-hidden">
-                  <img
-                    src={msg.imageUrl}
-                    alt="Generated image"
-                    className="max-w-full animate-image-reveal block rounded-xl"
-                  />
-                </div>
+                <ImageLightbox
+                  src={msg.imageUrl}
+                  alt="Generated image"
+                  className="max-w-full max-h-[500px] object-contain animate-image-reveal block rounded-xl"
+                />
               ) : (
-                <div className="rounded-2xl bg-[var(--surface-inset)] px-4 py-3 text-[15px] text-[var(--text-secondary)] leading-relaxed">
+                <div className="text-[15px] text-[var(--text-secondary)] leading-relaxed">
                   {msg.content || "Image generation failed."}
                 </div>
               )}

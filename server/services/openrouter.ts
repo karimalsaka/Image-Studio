@@ -1,3 +1,5 @@
+import { AppError } from '../errors';
+
 export interface ChatMessage {
     role: string;
     content: string | ChatMessageContent[];
@@ -66,7 +68,18 @@ export async function generateImage(
     logResponse(response.status, data);
 
     if (!response.ok) {
-        throw new Error(data.error?.message || JSON.stringify(data));
+        const apiMessage = data.error?.message;
+        if (response.status === 429) {
+            throw new AppError('Rate limit exceeded. Please wait a moment and try again.', 429);
+        }
+        if (response.status === 402) {
+            throw new AppError('API quota exceeded. Check your OpenRouter account.', 402);
+        }
+        if (response.status === 400) {
+            throw new AppError(apiMessage || 'The model rejected this request. Try a different prompt.', 400);
+        }
+        // Unknown API errors — log full details but give user a clean message
+        throw new AppError(apiMessage || 'Image generation failed. Please try again.', response.status);
     }
 
     return data

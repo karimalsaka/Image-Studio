@@ -7,11 +7,23 @@ async function request(path: string, options?: RequestInit) {
     const body = options?.body ? JSON.parse(options.body as string) : undefined;
     console.log(`[API] ${method} ${API_URL}${path}`, body ?? '');
 
-    const response = await fetch(`${API_URL}${path}`, {
-        headers: { 'Content-Type': 'application/json' },
-        ...options,
-    });
-    const data = await response.json();
+    let response: Response;
+    try {
+        response = await fetch(`${API_URL}${path}`, {
+            headers: { 'Content-Type': 'application/json' },
+            ...options,
+        });
+    } catch {
+        console.error(`[API] ${method} ${path} network error`);
+        throw new ApiError('Unable to reach the server. Check your connection.', 0);
+    }
+
+    let data;
+    try {
+        data = await response.json();
+    } catch {
+        throw new ApiError('Server returned an invalid response.', response.status);
+    }
 
     if (!response.ok) {
         console.error(`[API] ${method} ${path} failed (${response.status}):`, data);

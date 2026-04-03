@@ -30,7 +30,7 @@ export default function ChatPage({
         setMessages(data.messages);
         setModel(data.model);
       })
-      .catch(() => setError("Failed to load chat."))
+      .catch((err) => setError(err instanceof ApiError ? err.message : "Failed to load chat."))
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -41,8 +41,9 @@ export default function ChatPage({
       setError("");
 
       // Optimistic user message
+      const tempId = `temp-${Date.now()}`;
       const tempUserMsg: Message = {
-        id: `temp-${Date.now()}`,
+        id: tempId,
         role: "user",
         content,
         createdAt: new Date().toISOString(),
@@ -53,6 +54,8 @@ export default function ChatPage({
         const assistantMsg = await sendMessage(id, content, model);
         setMessages((prev) => [...prev, assistantMsg]);
       } catch (err) {
+        // Roll back the optimistic message
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
         setError(
           err instanceof ApiError
             ? err.message

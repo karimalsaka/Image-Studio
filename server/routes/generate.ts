@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { generateImage } from '../services/openrouter';
 import { uploadImage } from '../services/storage';
+import { AppError, toErrorResponse } from '../errors';
 
 const router = Router();
 
@@ -14,13 +15,12 @@ router.post('/', async (req, res) => {
     const n = Math.min(Math.max(Number(count) || 1, 1), 5);
 
     try {
-        // Fire all generations in parallel
-        const results = await Promise.all(
+        const results = await Promise.allSettled(
             Array.from({ length: n }, () =>
                 generateImage(prompt, size, model).then(async (data) => {
                     const images = data.choices?.[0]?.message?.images;
                     if (!images || images.length === 0) {
-                        throw new Error('Model did not return an image');
+                        throw new AppError('Model did not return an image. Try a different prompt.');
                     }
                     const base64ImageUrl = images[0].image_url.url;
                     const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.png`;
@@ -29,11 +29,20 @@ router.post('/', async (req, res) => {
             )
         );
 
-        res.json({ imageUrls: results });
+        const imageUrls = results
+            .filter((r): r is PromiseFulfilledResult<string> => r.status === 'fulfilled')
+            .map(r => r.value);
+
+        if (imageUrls.length === 0) {
+            const firstError = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
+            const { status, message } = toErrorResponse(firstError?.reason, 'Image generation failed. Please try again.');
+            return res.status(status).json({ error: message });
+        }
+
+        res.json({ imageUrls });
     } catch (error) {
-        const message = error instanceof Error ? error.message : 'Failed to generate image';
-        console.error('Error:', error);
-        res.status(500).json({ error: message });
+        const { status, message } = toErrorResponse(error, 'Image generation failed. Please try again.');
+        res.status(status).json({ error: message });
     }
 });
 

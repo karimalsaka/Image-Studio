@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { generateImage, type ChatMessage } from '../services/openrouter';
 import { uploadImage, imageUrlToBase64 } from '../services/storage';
 import prisma from '../db';
+import { AppError, toErrorResponse } from '../errors';
 
 const router = Router();
 
@@ -30,8 +31,8 @@ router.post('/', async (req, res) => {
         });
         res.json(chat);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to create chat' });
+        const { status, message } = toErrorResponse(error, 'Could not create chat. Please try again.');
+        res.status(status).json({ error: message });
     }
 });
 
@@ -50,7 +51,8 @@ router.get('/', async (req, res) => {
         });
         res.json(chats);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch chats' });
+        const { status, message } = toErrorResponse(error, 'Could not load chats. Please try again.');
+        res.status(status).json({ error: message });
     }
 });
 
@@ -64,7 +66,8 @@ router.get('/:id', async (req, res) => {
         if (!chat) return res.status(404).json({ error: 'Chat not found' });
         res.json(chat);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch chat' });
+        const { status, message } = toErrorResponse(error, 'Could not load chat. Please try again.');
+        res.status(status).json({ error: message });
     }
 });
 
@@ -83,11 +86,6 @@ router.post('/:id/messages', async (req, res) => {
         });
 
         if (!chat) return res.status(404).json({ error: 'Chat not found' });
-
-        // Save user message
-        await prisma.message.create({
-            data: { chatId: chat.id, role: 'user', content },
-        });
 
         const lastImage = [...chat.messages].reverse().find(m => m.imageUrl);
         const messages: ChatMessage[] = [];
@@ -110,22 +108,26 @@ router.post('/:id/messages', async (req, res) => {
 
         const images = data.choices?.[0]?.message?.images;
         if (!images || images.length === 0) {
-            throw new Error('Model did not return an image');
+            throw new AppError('Model did not return an image. Try a different prompt.');
         }
 
         const base64Url = images[0].image_url.url;
         const filename = `${Date.now()}.png`;
         const s3ImageUrl = await uploadImage(base64Url, filename);
 
-        // Save assistant response
+        // Only save both messages after generation succeeds
+        await prisma.message.create({
+            data: { chatId: chat.id, role: 'user', content },
+        });
+
         const assistantMessage = await prisma.message.create({
             data: { chatId: chat.id, role: 'assistant', content: '', imageUrl: s3ImageUrl },
         });
 
         res.json(assistantMessage);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to send message' });
+        const { status, message } = toErrorResponse(error, 'Could not generate image. Please try again.');
+        res.status(status).json({ error: message });
     }
 });
 

@@ -6,7 +6,7 @@ import PromptTextField from "./PromptTextField";
 import Dropdown from "@/app/components/Dropdown";
 import { generateImage, createChat } from "@/app/services/api";
 import { ApiError } from "@/app/services/errors";
-import { MODELS, SIZES } from "@/app/shared/constants";
+import { MODELS, SIZES, COUNTS } from "@/app/shared/constants";
 
 const suggestions = [
   {
@@ -49,40 +49,42 @@ export default function Studio() {
   const [prompt, setPrompt] = useState("");
   const [model, setModel] = useState(MODELS[0].id);
   const [imageSize, setImageSize] = useState(SIZES[0].id);
+  const [imageCount, setImageCount] = useState(COUNTS[0].id);
   const [isLoading, setIsLoading] = useState(false);
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [error, setError] = useState("");
-  const [isRefining, setIsRefining] = useState(false);
+  const [refiningIndex, setRefiningIndex] = useState<number | null>(null);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     if (!prompt.trim() || isLoading) return;
     setIsLoading(true);
     setError("");
+    setImageUrls([]);
     try {
-      const data = await generateImage(prompt, imageSize, model);
-      setImageUrl(data.imageUrl);
+      const data = await generateImage(prompt, imageSize, model, Number(imageCount));
+      setImageUrls(data.imageUrls);
     } catch (error) {
       if (error instanceof ApiError) {
         console.error(`Error ${error.status}: ${error.message}`);
         setError(error.message);
       } else {
-        setError('Something went wrong. Please try again.');
+        setError("Something went wrong. Please try again.");
       }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleRefine = async () => {
-    if (isRefining) return;
-    setIsRefining(true);
+  const handleRefine = async (url: string, index: number) => {
+    if (refiningIndex !== null) return;
+    setRefiningIndex(index);
     try {
-      // Using a hardcoded userId for now — replace with real auth later
-      const chat = await createChat(prompt, model, "demo-user", imageUrl);
+      const chat = await createChat(prompt, model, "demo-user", url);
       router.push(`/dashboard/chat/${chat.id}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to start refinement session.");
-      setIsRefining(false);
+      setRefiningIndex(null);
     }
   };
 
@@ -103,6 +105,7 @@ export default function Studio() {
         <div className="flex items-center justify-end gap-2 mt-2">
           <Dropdown options={MODELS} value={model} onChange={setModel} />
           <Dropdown options={SIZES} value={imageSize} onChange={setImageSize} />
+          <Dropdown options={COUNTS} value={imageCount} onChange={setImageCount} />
 
           <button
             onClick={handleGenerate}
@@ -154,43 +157,111 @@ export default function Studio() {
           <div className="h-64 flex items-center justify-center">
             <div className="text-center">
               <div className="w-8 h-8 rounded-full border-2 border-stone-300 border-t-gray-900 animate-spin mx-auto mb-3" />
-              <p className="text-gray-400 text-sm">Creating your image...</p>
+              <p className="text-gray-400 text-sm">
+                Creating {Number(imageCount) > 1 ? `${imageCount} images` : "your image"}...
+              </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Generated image */}
-      {imageUrl && !isLoading && (
-        <div className="rounded-2xl border border-stone-200 overflow-hidden group relative bg-stone-50 p-2 mx-auto w-fit">
-          <img
-            key={imageUrl}
-            src={imageUrl}
-            alt={prompt}
-            className="rounded-xl max-w-lg animate-image-reveal block"
-          />
-          <div className="absolute bottom-4 right-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      {/* Generated images */}
+      {imageUrls.length > 0 && !isLoading && (
+        <div className={`grid gap-3 ${
+          imageUrls.length === 1 ? "grid-cols-1" :
+          imageUrls.length === 2 ? "grid-cols-2" :
+          "grid-cols-3"
+        }`}>
+          {imageUrls.map((url, i) => (
+            <div
+              key={url}
+              className="rounded-2xl border border-stone-200 overflow-hidden group relative bg-stone-50 p-2"
+            >
+              <img
+                src={url}
+                alt={`${prompt} (${i + 1})`}
+                className="rounded-xl w-full animate-image-reveal block cursor-pointer"
+                onClick={() => setLightboxUrl(url)}
+              />
+              <div className="absolute bottom-4 right-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={() => handleRefine(url, i)}
+                  disabled={refiningIndex !== null}
+                  className="h-8 px-3 rounded-full bg-white border border-stone-200 flex items-center gap-1.5 hover:bg-stone-50 transition-colors shadow-sm text-[13px] font-medium text-gray-700 cursor-pointer disabled:opacity-50"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182M2.985 19.644l3.181-3.183" />
+                  </svg>
+                  {refiningIndex === i ? "Opening..." : "Refine"}
+                </button>
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download
+                  className="w-8 h-8 rounded-full bg-white border border-stone-200 flex items-center justify-center hover:bg-stone-50 transition-colors shadow-sm"
+                >
+                  <svg className="w-3.5 h-3.5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Lightbox */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-6"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <div
+            className="relative max-w-4xl max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={lightboxUrl}
+              alt={prompt}
+              className="rounded-2xl max-w-full max-h-[90vh] object-contain animate-image-reveal"
+            />
             <button
-              onClick={handleRefine}
-              disabled={isRefining}
-              className="h-8 px-3 rounded-full bg-white border border-stone-200 flex items-center gap-1.5 hover:bg-stone-50 transition-colors shadow-sm text-[13px] font-medium text-gray-700 cursor-pointer disabled:opacity-50"
+              onClick={() => setLightboxUrl(null)}
+              className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/70 transition-colors cursor-pointer"
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182M2.985 19.644l3.181-3.183" />
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
               </svg>
-              {isRefining ? "Opening…" : "Refine"}
             </button>
-            <a
-              href={imageUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              download
-              className="w-8 h-8 rounded-full bg-white border border-stone-200 flex items-center justify-center hover:bg-stone-50 transition-colors shadow-sm"
-            >
-              <svg className="w-3.5 h-3.5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-              </svg>
-            </a>
+            <div className="absolute bottom-3 right-3 flex items-center gap-2">
+              <button
+                onClick={() => {
+                  const idx = imageUrls.indexOf(lightboxUrl);
+                  setLightboxUrl(null);
+                  handleRefine(lightboxUrl, idx !== -1 ? idx : 0);
+                }}
+                disabled={refiningIndex !== null}
+                className="h-9 px-4 rounded-full bg-white/90 flex items-center gap-1.5 hover:bg-white transition-colors text-[13px] font-medium text-gray-700 cursor-pointer disabled:opacity-50"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182M2.985 19.644l3.181-3.183" />
+                </svg>
+                Refine
+              </button>
+              <a
+                href={lightboxUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+                className="h-9 px-4 rounded-full bg-white/90 flex items-center gap-1.5 hover:bg-white transition-colors text-[13px] font-medium text-gray-700"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+                Download
+              </a>
+            </div>
           </div>
         </div>
       )}

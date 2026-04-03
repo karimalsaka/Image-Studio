@@ -22,10 +22,10 @@ async function request(path: string, options?: RequestInit) {
     return data;
 }
 
-export async function generateImage(prompt: string, size?: string, model?: string) {
+export async function generateImage(prompt: string, size?: string, model?: string, count?: number) {
     return request('/api/generate', {
         method: 'POST',
-        body: JSON.stringify({ prompt, size, model }),
+        body: JSON.stringify({ prompt, size, model, count }),
     });
 }
 

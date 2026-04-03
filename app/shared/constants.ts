@@ -6,6 +6,14 @@ export const MODELS = [
   { id: "openai/gpt-5-image", label: "GPT-5 Image" },
 ];
 
+export const COUNTS = [
+  { id: "1", label: "1 Image" },
+  { id: "2", label: "2 Image" },
+  { id: "3", label: "3 Image" },
+  { id: "4", label: "4 Image" },
+  { id: "5", label: "5 Image" },
+];
+
 export const SIZES = [
   { id: "1:1", label: "Square (1:1)" },
   { id: "16:9", label: "Landscape (16:9)" },

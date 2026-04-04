@@ -8,16 +8,21 @@ import { generateImage, createChat } from "@/app/services/api";
 import { ApiError } from "@/app/services/errors";
 import { MODELS, SIZES, COUNTS } from "@/app/shared/constants";
 import ImageLightbox from "@/app/components/ImageLightbox";
+import AuthModal from "@/app/components/AuthModal";
+import { useAuth } from "@/app/context/AuthContext";
 
 const suggestions = [
-  { emoji: "🏔", label: "A cabin on a misty mountain at golden hour, cinematic lighting" },
-  { emoji: "🐉", label: "A dragon made of stained glass, sunlight pouring through" },
-  { emoji: "🌌", label: "An astronaut floating through a nebula shaped like a jellyfish" },
-  { emoji: "🏛", label: "Ancient Greek temple overgrown with bioluminescent vines" },
+  { emoji: "🏔", label: "Misty mountain cabin at golden hour" },
+  { emoji: "🐉", label: "A dragon made entirely of stained glass with sunlight pouring through its wings" },
+  { emoji: "🌌", label: "Astronaut drifting through a jellyfish-shaped nebula" },
+  { emoji: "🎭", label: "Venetian mask melting into liquid gold, dark moody background, dramatic studio lighting" },
+  { emoji: "🌊", label: "Lighthouse in a violent storm, oil painting" },
+  { emoji: "🏛", label: "Ancient temple overgrown with bioluminescent vines at night" },
 ];
 
 export default function Studio() {
   const router = useRouter();
+  const { user } = useAuth();
   const [prompt, setPrompt] = useState("");
   const [model, setModel] = useState(MODELS[0].id);
   const [imageSize, setImageSize] = useState(SIZES[0].id);
@@ -26,9 +31,12 @@ export default function Studio() {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [refiningIndex, setRefiningIndex] = useState<number | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
 
   const handleGenerate = async () => {
     if (!prompt.trim() || isLoading) return;
+    if (!user) { setShowAuth(true); return; }
+
     setIsLoading(true);
     setError("");
     setImageUrls([]);
@@ -49,9 +57,11 @@ export default function Studio() {
 
   const handleRefine = async (url: string, index: number) => {
     if (refiningIndex !== null) return;
+    if (!user) { setShowAuth(true); return; }
+
     setRefiningIndex(index);
     try {
-      const chat = await createChat(prompt, model, "demo-user", url);
+      const chat = await createChat(prompt, model, url);
       router.push(`/dashboard/chat/${chat.id}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to start refinement session.");
@@ -61,6 +71,8 @@ export default function Studio() {
 
   return (
     <div className="space-y-4">
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+
       {/* Prompt card */}
       <div className="bg-[var(--surface-raised)] rounded-2xl border border-[var(--border)] p-5 shadow-sm shadow-black/3">
         <PromptTextField
@@ -99,7 +111,7 @@ export default function Studio() {
       </div>
 
       {/* Suggestions */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap justify-center gap-2">
         {suggestions.map(({ emoji, label }) => (
           <button
             key={label}
@@ -179,7 +191,6 @@ export default function Studio() {
           ))}
         </div>
       )}
-
     </div>
   );
 }

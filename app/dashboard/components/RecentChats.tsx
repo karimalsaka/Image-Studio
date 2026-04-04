@@ -4,19 +4,22 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getChats } from "@/app/services/api";
 import type { Chat } from "@/app/shared/types";
+import { useAuth } from "@/app/context/AuthContext";
 
 export default function RecentChats() {
+  const { user } = useAuth();
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getChats("demo-user")
+    if (!user) { setLoading(false); return; }
+    getChats()
       .then((data) => setChats(data.slice(0, 5)))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [user]);
 
-  if (loading || chats.length === 0) return null;
+  if (loading || !user || chats.length === 0) return null;
 
   return (
     <div className="mt-14">

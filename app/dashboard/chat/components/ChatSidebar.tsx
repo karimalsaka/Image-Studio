@@ -5,21 +5,26 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { getChats, deleteChat } from "@/app/services/api";
 import type { Chat } from "@/app/shared/types";
+import { useAuth } from "@/app/context/AuthContext";
+import AuthModal from "@/app/components/AuthModal";
 
 export default function ChatSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { user } = useAuth();
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => {
-    getChats("demo-user")
+    if (!user) { setLoading(false); return; }
+    getChats()
       .then(setChats)
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [user]);
 
   const activeChatId = pathname.split("/dashboard/chat/")[1];
 
@@ -44,7 +49,7 @@ export default function ChatSidebar() {
         if (remaining.length > 0) {
           router.push(`/dashboard/chat/${remaining[0].id}`);
         } else {
-          router.push("/dashboard");
+          router.push("/dashboard/chat");
         }
       }
     } catch {
@@ -62,6 +67,8 @@ export default function ChatSidebar() {
 
   return (
     <aside className="w-[280px] shrink-0 border-r border-[var(--border)] h-[calc(100vh-56px)] flex flex-col bg-[var(--surface)]">
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+
       {/* Header */}
       <div className="px-5 pt-5 pb-3 flex items-center justify-between">
         <span className="text-[13px] font-semibold text-[var(--text-primary)] tracking-tight">
@@ -77,7 +84,19 @@ export default function ChatSidebar() {
 
       {/* Chat list */}
       <div className="flex-1 overflow-y-auto px-3 pb-4">
-        {loading ? (
+        {!user ? (
+          <div className="px-2 py-8 text-center">
+            <p className="text-[var(--text-tertiary)] text-[13px] mb-3">
+              Please log in to see your chats
+            </p>
+            <button
+              onClick={() => setShowAuth(true)}
+              className="text-[12px] font-medium text-[var(--text-primary)] hover:underline cursor-pointer"
+            >
+              Sign in
+            </button>
+          </div>
+        ) : loading ? (
           <div className="flex justify-center py-8">
             <div className="w-4 h-4 rounded-full border-2 border-[var(--border)] border-t-[var(--text-primary)] animate-spin" />
           </div>

@@ -3,6 +3,8 @@ import { ApiError } from "./errors";
 const API_URL = 'http://localhost:4000';
 
 async function request(path: string, options?: RequestInit) {
+    const token = localStorage.getItem('token');
+
     const method = options?.method || 'GET';
     const body = options?.body ? JSON.parse(options.body as string) : undefined;
     console.log(`[API] ${method} ${API_URL}${path}`, body ?? '');
@@ -10,7 +12,10 @@ async function request(path: string, options?: RequestInit) {
     let response: Response;
     try {
         response = await fetch(`${API_URL}${path}`, {
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json' ,
+                ...(token && { 'Authorization': `Brearer ${token}` })
+            },
             ...options,
         });
     } catch {
@@ -68,3 +73,18 @@ export async function sendMessage(chatId: string, content: string, model?: strin
         body: JSON.stringify({ content, model }),
     });
 }
+
+export async function signUp(email: string, name: string, password: string) {
+    return request('/api/auth/signup', {
+        method: 'POST',
+        body: JSON.stringify({email, name, password})
+    });
+}
+
+export async function logIN(email: string, password: string) {
+    return request("api/auth/login", {
+        method: 'POST',
+        body: JSON.stringify({ email, password })
+    });
+}
+

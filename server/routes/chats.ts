@@ -12,7 +12,7 @@ router.post('/', async (req, res) => {
     const userId = res.locals.userId
 
     if (!title || !model || !imageUrl) {
-        return res.status(400).json({ error: 'Missing required fields: title, model, userId, imageUrl' });
+        return res.status(400).json({ error: 'Missing required fields: title, model, imageUrl' });
     }
 
     try {

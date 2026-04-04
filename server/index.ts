@@ -30,7 +30,7 @@ app.use((req, res, next) => {
 
 app.use('/api/generate', generateRoutes);
 app.use('/api/chats', chatRoutes);
-
+app.use('/api/auth', authRoutes)
 app.listen(4000, () => {
     console.log('Server running on http://localhost:4000');
 });

@@ -1,17 +1,9 @@
 export const MODELS = [
-  { id: "google/gemini-2.5-flash-image", label: "Gemini 2.5 Flash" },
-  { id: "google/gemini-3.1-flash-image-preview", label: "Gemini 3.1 Flash" },
-  { id: "google/gemini-3-pro-image-preview", label: "Gemini 3 Pro" },
+  { id: "google/gemini-2.5-flash-image", label: "Nano Banana (Gemini 2.5 Flash)" },
+  { id: "google/gemini-3.1-flash-image-preview", label: "Nano Banana 2 (Gemini 3.1 Flash)" },
+  { id: "google/gemini-3-pro-image-preview", label: "Nano Banana Pro (Gemini 3 Pro)" },
   { id: "openai/gpt-5-image-mini", label: "GPT-5 Image Mini" },
   { id: "openai/gpt-5-image", label: "GPT-5 Image" },
-];
-
-export const COUNTS = [
-  { id: "1", label: "1 Image" },
-  { id: "2", label: "2 Image" },
-  { id: "3", label: "3 Image" },
-  { id: "4", label: "4 Image" },
-  { id: "5", label: "5 Image" },
 ];
 
 export const SIZES = [

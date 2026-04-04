@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import PromptTextField from "./PromptTextField";
 import Dropdown from "@/app/components/Dropdown";
+import ModelPicker from "@/app/components/ModelPicker";
 import { generateImage, createChat } from "@/app/services/api";
 import { ApiError } from "@/app/services/errors";
-import { MODELS, SIZES, COUNTS } from "@/app/shared/constants";
+import { MODELS, SIZES } from "@/app/shared/constants";
 import ImageLightbox from "@/app/components/ImageLightbox";
 import AuthModal from "@/app/components/AuthModal";
 import { useAuth } from "@/app/context/AuthContext";
@@ -20,15 +21,20 @@ const suggestions = [
   { emoji: "🏛", label: "Ancient temple overgrown with bioluminescent vines at night" },
 ];
 
+interface GeneratedImage {
+  imageUrl: string;
+  model: string;
+  modelLabel: string;
+}
+
 export default function Studio() {
   const router = useRouter();
   const { user } = useAuth();
   const [prompt, setPrompt] = useState("");
-  const [model, setModel] = useState(MODELS[0].id);
+  const [selectedModels, setSelectedModels] = useState([MODELS[0].id]);
   const [imageSize, setImageSize] = useState(SIZES[0].id);
-  const [imageCount, setImageCount] = useState(COUNTS[0].id);
   const [isLoading, setIsLoading] = useState(false);
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [images, setImages] = useState<GeneratedImage[]>([]);
   const [error, setError] = useState("");
   const [refiningIndex, setRefiningIndex] = useState<number | null>(null);
   const [showAuth, setShowAuth] = useState(false);
@@ -39,10 +45,10 @@ export default function Studio() {
 
     setIsLoading(true);
     setError("");
-    setImageUrls([]);
+    setImages([]);
     try {
-      const data = await generateImage(prompt, imageSize, model, Number(imageCount));
-      setImageUrls(data.imageUrls);
+      const data = await generateImage(prompt, imageSize, selectedModels);
+      setImages(data.images);
     } catch (error) {
       if (error instanceof ApiError) {
         console.error(`Error ${error.status}: ${error.message}`);
@@ -55,13 +61,13 @@ export default function Studio() {
     }
   };
 
-  const handleRefine = async (url: string, index: number) => {
+  const handleRefine = async (img: GeneratedImage, index: number) => {
     if (refiningIndex !== null) return;
     if (!user) { setShowAuth(true); return; }
 
     setRefiningIndex(index);
     try {
-      const chat = await createChat(prompt, model, url);
+      const chat = await createChat(prompt, img.model, img.imageUrl);
       router.push(`/dashboard/chat/${chat.id}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to start refinement session.");
@@ -86,9 +92,8 @@ export default function Studio() {
         />
 
         <div className="flex items-center justify-end gap-1.5 mt-2">
-          <Dropdown options={MODELS} value={model} onChange={setModel} />
+          <ModelPicker selected={selectedModels} onChange={setSelectedModels} />
           <Dropdown options={SIZES} value={imageSize} onChange={setImageSize} />
-          <Dropdown options={COUNTS} value={imageCount} onChange={setImageCount} />
 
           <button
             onClick={handleGenerate}
@@ -143,7 +148,7 @@ export default function Studio() {
             <div className="text-center">
               <div className="w-6 h-6 rounded-full border-2 border-[var(--border)] border-t-[var(--text-primary)] animate-spin mx-auto mb-3" />
               <p className="text-[var(--text-tertiary)] text-[13px]">
-                Creating {Number(imageCount) > 1 ? `${imageCount} images` : "your image"}...
+                Generating with {selectedModels.length === 1 ? "1 model" : `${selectedModels.length} models`}...
               </p>
             </div>
           </div>
@@ -151,32 +156,38 @@ export default function Studio() {
       )}
 
       {/* Generated images */}
-      {imageUrls.length > 0 && !isLoading && (
+      {images.length > 0 && !isLoading && (
         <div className="grid grid-cols-3 gap-2.5">
-          {imageUrls.map((url, i) => (
+          {images.map((img, i) => (
             <div
-              key={url}
+              key={img.imageUrl}
               className="rounded-xl overflow-hidden group relative bg-[var(--surface-inset)]"
             >
               <div className="aspect-square overflow-hidden">
                 <ImageLightbox
-                  src={url}
-                  alt={`${prompt} (${i + 1})`}
+                  src={img.imageUrl}
+                  alt={`${prompt} — ${img.modelLabel}`}
                   className="w-full h-full object-cover animate-image-reveal block hover:scale-[1.03] transition-transform duration-300"
-                  onRefine={() => handleRefine(url, i)}
+                  onRefine={() => handleRefine(img, i)}
                 />
+              </div>
+              {/* Model label */}
+              <div className="absolute top-2.5 left-2.5">
+                <span className="px-2 py-1 rounded-full bg-white/90 backdrop-blur-sm text-[10px] font-semibold text-[var(--text-secondary)]">
+                  {img.modelLabel}
+                </span>
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none" />
               <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
-                  onClick={() => handleRefine(url, i)}
+                  onClick={() => handleRefine(img, i)}
                   disabled={refiningIndex !== null}
                   className="h-7 px-2.5 rounded-full bg-white/90 backdrop-blur-sm flex items-center gap-1 text-[11px] font-semibold text-[var(--text-primary)] cursor-pointer disabled:opacity-50 hover:bg-white transition-colors"
                 >
                   {refiningIndex === i ? "Opening..." : "Refine"}
                 </button>
                 <a
-                  href={url}
+                  href={img.imageUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   download

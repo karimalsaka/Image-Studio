@@ -37,10 +37,10 @@ async function request(path: string, options?: RequestInit) {
     return data;
 }
 
-export async function generateImage(prompt: string, size?: string, model?: string, count?: number) {
+export async function generateImage(prompt: string, size?: string, models?: string[]) {
     return request('/generate', {
         method: 'POST',
-        body: JSON.stringify({ prompt, size, model, count }),
+        body: JSON.stringify({ prompt, size, models }),
     });
 }
 
@@ -65,10 +65,10 @@ export async function deleteChat(id: string) {
     });
 }
 
-export async function sendMessage(chatId: string, content: string, model?: string) {
+export async function sendMessage(chatId: string, content: string, model?: string, size?: string) {
     return request(`/chats/${encodeURIComponent(chatId)}/messages`, {
         method: 'POST',
-        body: JSON.stringify({ content, model }),
+        body: JSON.stringify({ content, model, size }),
     });
 }
 

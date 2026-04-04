@@ -92,7 +92,7 @@ router.get('/:id', async (req, res) => {
 
 // Send a message in a chat
 router.post('/:id/messages', async (req, res) => {
-    const { content, model } = req.body;
+    const { content, model, size } = req.body;
     const { userId } = res.locals
 
     if (!content) {
@@ -128,7 +128,7 @@ router.post('/:id/messages', async (req, res) => {
         messages.push({ role: 'user', content });
 
         // Generate new image with full history
-        const data = await generateImage(content, undefined, model || chat.model, messages);
+        const data = await generateImage(content, size || '1:1', model || chat.model, messages);
 
         const images = data.choices?.[0]?.message?.images;
         if (!images || images.length === 0) {

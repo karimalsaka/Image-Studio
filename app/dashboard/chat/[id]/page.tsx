@@ -5,7 +5,7 @@ import Link from "next/link";
 import Dropdown from "@/app/components/Dropdown";
 import { getChat, sendMessage } from "@/app/services/api";
 import { ApiError } from "@/app/services/errors";
-import { MODELS } from "@/app/shared/constants";
+import { MODELS, SIZES } from "@/app/shared/constants";
 import type { Chat, Message } from "@/app/shared/types";
 import ChatThread from "./components/ChatThread";
 import ChatInput from "./components/ChatInput";
@@ -19,6 +19,7 @@ export default function ChatPage({
   const [chat, setChat] = useState<Chat | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [model, setModel] = useState(MODELS[0].id);
+  const [size, setSize] = useState(SIZES[0].id);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -50,7 +51,7 @@ export default function ChatPage({
       setMessages((prev) => [...prev, tempUserMsg]);
 
       try {
-        const assistantMsg = await sendMessage(id, content, model);
+        const assistantMsg = await sendMessage(id, content, model, size);
         setMessages((prev) => [...prev, assistantMsg]);
       } catch (err) {
         setMessages((prev) => prev.filter((m) => m.id !== tempId));
@@ -63,7 +64,7 @@ export default function ChatPage({
         setIsSending(false);
       }
     },
-    [id, model, isSending]
+    [id, model, size, isSending]
   );
 
   if (loading) {
@@ -97,7 +98,10 @@ export default function ChatPage({
         <span className="text-[14px] font-medium text-[var(--text-primary)]">
           {chat?.title}
         </span>
-        <Dropdown options={MODELS} value={model} onChange={setModel} direction="down" />
+        <div className="flex items-center gap-1.5">
+          <Dropdown options={MODELS} value={model} onChange={setModel} direction="down" />
+          <Dropdown options={SIZES} value={size} onChange={setSize} direction="down" />
+        </div>
       </div>
 
       {/* Messages */}

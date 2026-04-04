@@ -29,11 +29,17 @@ router.post('/signup', async (req, res) => {
             data: { email, name, password: hashedPassword }
         })
 
-        const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' })
-        res.json({ token, user: { id: user.id, email: user.email, name: user.name } })
+        const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+        res.json({ user: { id: user.id, email: user.email, name: user.name } });
     } catch(error) {
-        const { status, message } = toErrorResponse(error, "Couldn't create account. Please try again")
-        res.status(status).json({ error: message })
+        const { status, message } = toErrorResponse(error, "Couldn't create account. Please try again");
+        res.status(status).json({ error: message });
     }
 })
 
@@ -59,11 +65,22 @@ router.post('/login', async (req, res) => {
         }
 
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d'})
-        res.json({ token, user: { id: user.id, name: user.name, email: user.email } })
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: false, 
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        })
+        res.json({ user: { id: user.id, name: user.name, email: user.email } });
     } catch(error) {
         const { status, message } = toErrorResponse(error, "Couldn't log in. Please try again.")
         res.status(status).json({ error: message })
     }
+})
+
+router.post('/logout', async ( _, res) => {
+    res.clearCookie('token')
+    res.status(200).json({ 'success': true })
 })
 
 export default router;

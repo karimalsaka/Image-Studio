@@ -1,10 +1,8 @@
 import { ApiError } from "./errors";
 
-const API_URL = 'http://localhost:4000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 async function request(path: string, options?: RequestInit) {
-    const token = localStorage.getItem('token');
-
     const method = options?.method || 'GET';
     const body = options?.body ? JSON.parse(options.body as string) : undefined;
     console.log(`[API] ${method} ${API_URL}${path}`, body ?? '');
@@ -14,8 +12,8 @@ async function request(path: string, options?: RequestInit) {
         response = await fetch(`${API_URL}${path}`, {
             headers: { 
                 'Content-Type': 'application/json' ,
-                ...(token && { 'Authorization': `Bearer ${token}` })
             },
+            credentials: 'include',
             ...options,
         });
     } catch {
@@ -40,51 +38,57 @@ async function request(path: string, options?: RequestInit) {
 }
 
 export async function generateImage(prompt: string, size?: string, model?: string, count?: number) {
-    return request('/api/generate', {
+    return request('/generate', {
         method: 'POST',
         body: JSON.stringify({ prompt, size, model, count }),
     });
 }
 
-export async function createChat(title: string, model: string, userId: string, imageUrl: string) {
-    return request('/api/chats', {
+export async function createChat(title: string, model: string, imageUrl: string) {
+    return request('/chats', {
         method: 'POST',
-        body: JSON.stringify({ title, model, userId, imageUrl }),
+        body: JSON.stringify({ title, model, imageUrl }),
     });
 }
 
-export async function getChats(userId: string) {
-    return request(`/api/chats?userId=${encodeURIComponent(userId)}`);
+export async function getChats() {
+    return request(`/chats`);
 }
 
 export async function getChat(id: string) {
-    return request(`/api/chats/${encodeURIComponent(id)}`);
+    return request(`/chats/${encodeURIComponent(id)}`);
 }
 
 export async function deleteChat(id: string) {
-    return request(`/api/chats/${encodeURIComponent(id)}`, {
+    return request(`/chats/${encodeURIComponent(id)}`, {
         method: 'DELETE',
     });
 }
 
 export async function sendMessage(chatId: string, content: string, model?: string) {
-    return request(`/api/chats/${encodeURIComponent(chatId)}/messages`, {
+    return request(`/chats/${encodeURIComponent(chatId)}/messages`, {
         method: 'POST',
         body: JSON.stringify({ content, model }),
     });
 }
 
 export async function signUp(email: string, name: string, password: string) {
-    return request('/api/auth/signup', {
+    return request('/auth/signup', {
         method: 'POST',
         body: JSON.stringify({email, name, password})
     });
 }
 
 export async function logIn(email: string, password: string) {
-    return request("/api/auth/login", {
+    return request("/auth/login", {
         method: 'POST',
         body: JSON.stringify({ email, password })
     });
+}
+
+export async function logOut() {
+    return request('/auth/logout', {
+        method: 'POST'
+        })
 }
 

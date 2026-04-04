@@ -8,9 +8,10 @@ const router = Router();
 
 // Create a chat
 router.post('/', async (req, res) => {
-    const { title, model, userId, imageUrl } = req.body;
+    const { title, model, imageUrl } = req.body;
+    const userId = res.locals.userId
 
-    if (!title || !model || !userId || !imageUrl) {
+    if (!title || !model || !imageUrl) {
         return res.status(400).json({ error: 'Missing required fields: title, model, userId, imageUrl' });
     }
 
@@ -38,11 +39,7 @@ router.post('/', async (req, res) => {
 
 // Get all chats for a user
 router.get('/', async (req, res) => {
-    const { userId } = req.query;
-
-    if (!userId || typeof userId !== 'string') {
-        return res.status(400).json({ error: 'Missing required query param: userId' });
-    }
+    const { userId } = res.locals
 
     try {
         const chats = await prisma.chat.findMany({
@@ -72,12 +69,20 @@ router.get('/', async (req, res) => {
 
 // Get a single chat with messages
 router.get('/:id', async (req, res) => {
+    const { userId } = res.locals
+
     try {
         const chat = await prisma.chat.findUnique({
             where: { id: req.params.id },
             include: { messages: { orderBy: { createdAt: 'asc' } } },
         });
+
         if (!chat) return res.status(404).json({ error: 'Chat not found' });
+
+        if (chat.userId !== userId) {
+            return res.status(403).json({ error: 'Forbidden' })
+        }
+
         res.json(chat);
     } catch (error) {
         const { status, message } = toErrorResponse(error, 'Could not load chat. Please try again.');
@@ -88,6 +93,7 @@ router.get('/:id', async (req, res) => {
 // Send a message in a chat
 router.post('/:id/messages', async (req, res) => {
     const { content, model } = req.body;
+    const { userId } = res.locals
 
     if (!content) {
         return res.status(400).json({ error: 'Missing required field: content' });
@@ -100,6 +106,10 @@ router.post('/:id/messages', async (req, res) => {
         });
 
         if (!chat) return res.status(404).json({ error: 'Chat not found' });
+
+        if (chat.userId !== userId) {
+            return res.status(403).json({ error: 'Forbidden' })
+        }
 
         const lastImage = [...chat.messages].reverse().find(m => m.imageUrl);
         const messages: ChatMessage[] = [];
@@ -146,10 +156,24 @@ router.post('/:id/messages', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
+    const { userId } = res.locals
+
     try {
-        await prisma.chat.delete({
-            where: { id: req.params.id}
+
+        const chat = await prisma.chat.findUnique({
+            where: { id: req.params.id }
         })
+
+        if (!chat) return res.status(404).json({ error: 'Chat not found'});
+
+        if (chat.userId !== userId) {
+            return res.status(403).json({ error: 'Forbidden' })
+        }
+
+        await prisma.chat.delete({
+            where: { id: req.params.id }
+        })        
+
         res.json({ success: true })
     } catch(error) {
         const { status, message } = toErrorResponse(error, 'Failed to delete chat');

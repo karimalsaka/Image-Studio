@@ -3,11 +3,12 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import generateRoutes from './routes/generate';
 import chatRoutes from './routes/chats';
+import authRoutes from './routes/auth';
 
 dotenv.config({ path: './server/.env' });
 
 // Validate required env vars
-const required = ['OPENROUTER_API_KEY', 'DATABASE_URL', 'S3_BUCKET_NAME', 'AWS_REGION', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'];
+const required = ['OPENROUTER_API_KEY', 'DATABASE_URL', 'S3_BUCKET_NAME', 'AWS_REGION', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'JWT_SECRET'];
 for (const key of required) {
     if (!process.env[key]) {
         throw new Error(`Missing required env var: ${key}`);

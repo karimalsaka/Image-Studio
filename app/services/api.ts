@@ -14,7 +14,7 @@ async function request(path: string, options?: RequestInit) {
         response = await fetch(`${API_URL}${path}`, {
             headers: { 
                 'Content-Type': 'application/json' ,
-                ...(token && { 'Authorization': `Brearer ${token}` })
+                ...(token && { 'Authorization': `Bearer ${token}` })
             },
             ...options,
         });
@@ -81,8 +81,8 @@ export async function signUp(email: string, name: string, password: string) {
     });
 }
 
-export async function logIN(email: string, password: string) {
-    return request("api/auth/login", {
+export async function logIn(email: string, password: string) {
+    return request("/api/auth/login", {
         method: 'POST',
         body: JSON.stringify({ email, password })
     });

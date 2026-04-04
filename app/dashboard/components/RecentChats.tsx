@@ -25,7 +25,7 @@ export default function RecentChats() {
           Recent Generations
         </h2>
         <Link
-          href="/dashboard/chats"
+          href="/dashboard/chat"
           className="text-[13px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
         >
           View all

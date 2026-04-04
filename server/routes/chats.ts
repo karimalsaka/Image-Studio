@@ -145,4 +145,17 @@ router.post('/:id/messages', async (req, res) => {
     }
 });
 
+router.delete('/:id', async (req, res) => {
+    try {
+        await prisma.chat.delete({
+            where: { id: req.params.id}
+        })
+        res.json({ success: true })
+    } catch(error) {
+        const { status, message } = toErrorResponse(error, 'Failed to delete chat');
+        res.status(status).json({ error: message })
+    }
+})
+
+
 export default router;

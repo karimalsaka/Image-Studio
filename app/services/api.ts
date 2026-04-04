@@ -56,6 +56,12 @@ export async function getChat(id: string) {
     return request(`/api/chats/${encodeURIComponent(id)}`);
 }
 
+export async function deleteChat(id: string) {
+    return request(`/api/chats/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+    });
+}
+
 export async function sendMessage(chatId: string, content: string, model?: string) {
     return request(`/api/chats/${encodeURIComponent(chatId)}/messages`, {
         method: 'POST',

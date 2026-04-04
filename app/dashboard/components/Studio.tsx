@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import PromptTextField from "./PromptTextField";
 import Dropdown from "@/app/components/Dropdown";
 import ModelPicker from "@/app/components/ModelPicker";
-import { generateImage, createChat } from "@/app/services/api";
+import { generateImageStream, createChat, type StreamEvent } from "@/app/services/api";
 import { ApiError } from "@/app/services/errors";
 import { MODELS, SIZES } from "@/app/shared/constants";
 import ImageLightbox from "@/app/components/ImageLightbox";
@@ -21,10 +21,11 @@ const suggestions = [
   { emoji: "🏛", label: "Ancient temple overgrown with bioluminescent vines at night" },
 ];
 
-interface GeneratedImage {
-  imageUrl: string;
+interface ImageSlot {
   model: string;
   modelLabel: string;
+  imageUrl?: string;
+  error?: string;
 }
 
 export default function Studio() {
@@ -34,7 +35,7 @@ export default function Studio() {
   const [selectedModels, setSelectedModels] = useState([MODELS[0].id]);
   const [imageSize, setImageSize] = useState(SIZES[0].id);
   const [isLoading, setIsLoading] = useState(false);
-  const [images, setImages] = useState<GeneratedImage[]>([]);
+  const [slots, setSlots] = useState<ImageSlot[]>([]);
   const [error, setError] = useState("");
   const [refiningIndex, setRefiningIndex] = useState<number | null>(null);
   const [showAuth, setShowAuth] = useState(false);
@@ -45,14 +46,29 @@ export default function Studio() {
 
     setIsLoading(true);
     setError("");
-    setImages([]);
+
+    // Create placeholder slots — one per selected model
+    const initialSlots: ImageSlot[] = selectedModels.map((id) => ({
+      model: id,
+      modelLabel: MODELS.find((m) => m.id === id)?.label || id,
+    }));
+    setSlots(initialSlots);
+
     try {
-      const data = await generateImage(prompt, imageSize, selectedModels);
-      setImages(data.images);
-    } catch (error) {
-      if (error instanceof ApiError) {
-        console.error(`Error ${error.status}: ${error.message}`);
-        setError(error.message);
+      await generateImageStream(prompt, imageSize, selectedModels, (event: StreamEvent) => {
+        setSlots((prev) =>
+          prev.map((slot) => {
+            if (slot.model !== event.model) return slot;
+            if (event.type === "image") {
+              return { ...slot, imageUrl: event.imageUrl, modelLabel: event.modelLabel };
+            }
+            return { ...slot, error: event.error, modelLabel: event.modelLabel };
+          })
+        );
+      });
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message);
       } else {
         setError("Something went wrong. Please try again.");
       }
@@ -61,19 +77,21 @@ export default function Studio() {
     }
   };
 
-  const handleRefine = async (img: GeneratedImage, index: number) => {
-    if (refiningIndex !== null) return;
+  const handleRefine = async (slot: ImageSlot, index: number) => {
+    if (refiningIndex !== null || !slot.imageUrl) return;
     if (!user) { setShowAuth(true); return; }
 
     setRefiningIndex(index);
     try {
-      const chat = await createChat(prompt, img.model, img.imageUrl);
+      const chat = await createChat(prompt, slot.model, slot.imageUrl);
       router.push(`/dashboard/chat/${chat.id}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to start refinement session.");
       setRefiningIndex(null);
     }
   };
+
+  const hasResults = slots.length > 0;
 
   return (
     <div className="space-y-4">
@@ -141,63 +159,69 @@ export default function Studio() {
         </div>
       )}
 
-      {/* Loading */}
-      {isLoading && (
-        <div className="bg-[var(--surface-raised)] rounded-2xl border border-[var(--border)] overflow-hidden">
-          <div className="h-56 flex items-center justify-center shimmer">
-            <div className="text-center">
-              <div className="w-6 h-6 rounded-full border-2 border-[var(--border)] border-t-[var(--text-primary)] animate-spin mx-auto mb-3" />
-              <p className="text-[var(--text-tertiary)] text-[13px]">
-                Generating with {selectedModels.length === 1 ? "1 model" : `${selectedModels.length} models`}...
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Generated images */}
-      {images.length > 0 && !isLoading && (
+      {/* Image grid — shows slots (loading or loaded) */}
+      {hasResults && (
         <div className="grid grid-cols-3 gap-2.5">
-          {images.map((img, i) => (
+          {slots.map((slot, i) => (
             <div
-              key={img.imageUrl}
+              key={slot.model}
               className="rounded-xl overflow-hidden group relative bg-[var(--surface-inset)]"
             >
               <div className="aspect-square overflow-hidden">
-                <ImageLightbox
-                  src={img.imageUrl}
-                  alt={`${prompt} — ${img.modelLabel}`}
-                  className="w-full h-full object-cover animate-image-reveal block hover:scale-[1.03] transition-transform duration-300"
-                  onRefine={() => handleRefine(img, i)}
-                />
+                {slot.imageUrl ? (
+                  <ImageLightbox
+                    src={slot.imageUrl}
+                    alt={`${prompt} — ${slot.modelLabel}`}
+                    className="w-full h-full object-cover animate-image-reveal block hover:scale-[1.03] transition-transform duration-300"
+                    onRefine={() => handleRefine(slot, i)}
+                  />
+                ) : slot.error ? (
+                  <div className="w-full h-full flex items-center justify-center p-4">
+                    <p className="text-red-400 text-[12px] text-center">{slot.error}</p>
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center shimmer">
+                    <div className="text-center">
+                      <div className="w-5 h-5 rounded-full border-2 border-[var(--border)] border-t-[var(--text-primary)] animate-spin mx-auto mb-2" />
+                      <p className="text-[var(--text-tertiary)] text-[11px]">Generating...</p>
+                    </div>
+                  </div>
+                )}
               </div>
-              {/* Model label */}
+
+              {/* Model label — always visible */}
               <div className="absolute top-2.5 left-2.5">
                 <span className="px-2 py-1 rounded-full bg-white/90 backdrop-blur-sm text-[10px] font-semibold text-[var(--text-secondary)]">
-                  {img.modelLabel}
+                  {slot.modelLabel}
                 </span>
               </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none" />
-              <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => handleRefine(img, i)}
-                  disabled={refiningIndex !== null}
-                  className="h-7 px-2.5 rounded-full bg-white/90 backdrop-blur-sm flex items-center gap-1 text-[11px] font-semibold text-[var(--text-primary)] cursor-pointer disabled:opacity-50 hover:bg-white transition-colors"
-                >
-                  {refiningIndex === i ? "Opening..." : "Refine"}
-                </button>
-                <a
-                  href={img.imageUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  download
-                  className="w-7 h-7 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-colors"
-                >
-                  <svg className="w-3 h-3 text-[var(--text-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                  </svg>
-                </a>
-              </div>
+
+              {/* Hover actions — only when image is loaded */}
+              {slot.imageUrl && (
+                <>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none" />
+                  <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => handleRefine(slot, i)}
+                      disabled={refiningIndex !== null}
+                      className="h-7 px-2.5 rounded-full bg-white/90 backdrop-blur-sm flex items-center gap-1 text-[11px] font-semibold text-[var(--text-primary)] cursor-pointer disabled:opacity-50 hover:bg-white transition-colors"
+                    >
+                      {refiningIndex === i ? "Opening..." : "Refine"}
+                    </button>
+                    <a
+                      href={slot.imageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download
+                      className="w-7 h-7 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-colors"
+                    >
+                      <svg className="w-3 h-3 text-[var(--text-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                      </svg>
+                    </a>
+                  </div>
+                </>
+              )}
             </div>
           ))}
         </div>

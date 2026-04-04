@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { generateImage } from '../services/openrouter';
 import { uploadImage } from '../services/storage';
-import { AppError, toErrorResponse } from '../errors';
+import { AppError } from '../errors';
 
 const MODEL_LABELS: Record<string, string> = {
     'google/gemini-2.5-flash-image': 'Nano Banana (Gemini 2.5 Flash)',
@@ -24,37 +24,59 @@ router.post('/', async (req, res) => {
         ? models
         : ['google/gemini-2.5-flash-image'];
 
-    try {
-        const results = await Promise.allSettled(
-            modelList.map((model: string) =>
-                generateImage(prompt, size, model).then(async (data) => {
-                    const images = data.choices?.[0]?.message?.images;
-                    if (!images || images.length === 0) {
-                        throw new AppError('Model did not return an image. Try a different prompt.');
-                    }
-                    const base64ImageUrl = images[0].image_url.url;
-                    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.png`;
-                    const imageUrl = await uploadImage(base64ImageUrl, filename);
-                    return { imageUrl, model, modelLabel: MODEL_LABELS[model] || model };
-                })
-            )
-        );
+    // Set up SSE
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
 
-        const images = results
-            .filter((r): r is PromiseFulfilledResult<{ imageUrl: string; model: string; modelLabel: string }> => r.status === 'fulfilled')
-            .map(r => r.value);
+    let completed = 0;
+    const total = modelList.length;
+    let closed = false;
 
-        if (images.length === 0) {
-            const firstError = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
-            const { status, message } = toErrorResponse(firstError?.reason, 'Image generation failed. Please try again.');
-            return res.status(status).json({ error: message });
-        }
+    req.on('close', () => { closed = true; });
 
-        res.json({ images });
-    } catch (error) {
-        const { status, message } = toErrorResponse(error, 'Image generation failed. Please try again.');
-        res.status(status).json({ error: message });
-    }
+    const write = (data: string) => {
+        if (!closed) res.write(data);
+    };
+
+    const promises = modelList.map((model: string) =>
+        generateImage(prompt, size, model)
+            .then(async (data) => {
+                const images = data.choices?.[0]?.message?.images;
+                if (!images || images.length === 0) {
+                    throw new AppError('Model did not return an image.');
+                }
+                const base64ImageUrl = images[0].image_url.url;
+                const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.png`;
+                const imageUrl = await uploadImage(base64ImageUrl, filename);
+
+                write(`data: ${JSON.stringify({
+                    type: 'image',
+                    model,
+                    modelLabel: MODEL_LABELS[model] || model,
+                    imageUrl,
+                })}\n\n`);
+            })
+            .catch((err) => {
+                const message = err instanceof AppError ? err.message : 'Generation failed';
+                write(`data: ${JSON.stringify({
+                    type: 'error',
+                    model,
+                    modelLabel: MODEL_LABELS[model] || model,
+                    error: message,
+                })}\n\n`);
+            })
+            .finally(() => {
+                completed++;
+                if (completed === total && !closed) {
+                    res.write('data: [DONE]\n\n');
+                    res.end();
+                }
+            })
+    );
+
+    await Promise.allSettled(promises);
 });
 
 export default router;

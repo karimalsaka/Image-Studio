@@ -1,78 +1,39 @@
 import { Router } from 'express'
-import prisma from '../db'
-import { AppError, toErrorResponse } from '../errors' 
-import bcrypt from "bcrypt"
-import jwt from "jsonwebtoken"
+import { toErrorResponse } from '../errors' 
+import AuthController from '../controllers/authController';
+import { validate } from "../middleware/validate"
+import { loginRequestSchema, signupRequestSchema } from '../schemas';
 
+const COOKIE_OPTIONS = {
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax' as const,
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
+const authController = new AuthController()
 const router = Router();
 
-router.post('/signup', async (req, res) => {
-    const { email, name, password } = req.body
-
-    if (!email || !password) {
-        return res.status(400).json({ error: "Email and password are required" })
-    }
+router.post('/signup', validate(signupRequestSchema), async (req, res) => { 
 
     try {
-        const existing = await prisma.user.findUnique({
-            where: { email }
-        })
-        
-        if (existing) {
-            throw new AppError("Email already in use", 409)
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10)
-
-        const tempId = crypto.randomUUID();
-        const token = jwt.sign({ userId: tempId }, process.env.JWT_SECRET!, { expiresIn: '7d' });
-
-        const user = await prisma.user.create({
-            data: { id: tempId, email, name, password: hashedPassword }
-        })
-
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: false,
-            sameSite: 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
-        res.json({ user: { id: user.id, email: user.email, name: user.name } });
+        const result = await authController.signUp(req.body)
+        const user = result.user
+        res.cookie('token', result.token, COOKIE_OPTIONS);
+        res.json({ user });
     } catch(error) {
         const { status, message } = toErrorResponse(error, "Couldn't create account. Please try again");
         res.status(status).json({ error: message });
     }
 })
 
-router.post('/login', async (req, res) => {
-    const { email, password } = req.body
-    
-    if (!email || !password) {
-        return res.status(400).json({ error: "Missing email or password"})
-    }
-
+router.post('/login', validate(loginRequestSchema), async (req, res) => {    
     try {
-        const user = await prisma.user.findUnique({
-            where: { email }
-        })
-        
-        if (!user) {
-            throw new AppError("Invalid email or password", 401)
-        }
+        const result = await authController.logIn(req.body)
+        const user = result.user
 
-        const valid = await bcrypt.compare(password, user.password)
-        if (!valid) {
-            throw new AppError("Invalid email or password", 401)
-        }
-
-        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, { expiresIn: '7d'})
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: false, 
-            sameSite: 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        })
-        res.json({ user: { id: user.id, name: user.name, email: user.email } });
+        res.cookie('token', result.token, COOKIE_OPTIONS);
+        res.json({ user });
     } catch(error) {
         const { status, message } = toErrorResponse(error, "Couldn't log in. Please try again.")
         res.status(status).json({ error: message })

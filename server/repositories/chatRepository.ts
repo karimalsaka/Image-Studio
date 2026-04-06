@@ -1,14 +1,14 @@
-import { Prisma, PrismaClient, Chat, Message } from "@/app/generated/prisma/client";
+import { Prisma, PrismaClient, Message } from "@/app/generated/prisma/client";
 import prisma from "../db";
 
 class ChatRepository {
     constructor(private db: PrismaClient = prisma) {}
 
-    async createChat(data: Prisma.ChatCreateInput): Promise<Chat> {
+    async createChat(data: Prisma.ChatCreateInput) {
         return await this.db.chat.create({ data , include: { messages: true } })
     }
 
-    async getAllChats(userId: string): Promise<Chat[]> {
+    async getAllChats(userId: string) {
         const chats = await this.db.chat.findMany({ 
             where: { userId },
             orderBy: { createdAt: 'desc' },
@@ -25,7 +25,7 @@ class ChatRepository {
         return chats
     }
 
-    async getSingleChat(chatId: string) : Promise<Chat | null> {
+    async getSingleChat(chatId: string) {
         const chat = await this.db.chat.findUnique({
             where: { id: chatId },
             include: { messages: {orderBy: { createdAt: 'asc' } } }

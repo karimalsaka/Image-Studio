@@ -21,21 +21,7 @@ for (const key of required) {
 
 const app = express();
 app.use(cookieParser());
-const allowedOrigins = [
-    process.env.CLIENT_URL,
-    'http://localhost:3000',
-].filter(Boolean) as string[];
-
-app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(null, false);
-        }
-    },
-    credentials: true,
-}));
+app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 app.use(generalLimiter);
 

@@ -46,6 +46,7 @@ app.use('/api/generate', authMiddleware, generateLimiter, generateRoutes);
 app.use('/api/chats', authMiddleware, chatRoutes);
 app.use('/api/auth', authLimiter, authRoutes);
 
-app.listen(4000, () => {
-    logger.info('Server running on http://localhost:4000');
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+    logger.info(`Server running on port ${PORT}`);
 });

@@ -1,12 +1,13 @@
 import express from "express";
 import cors from 'cors';
 import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
 import generateRoutes from './routes/generate';
 import chatRoutes from './routes/chats';
 import authRoutes from './routes/auth';
 import { authMiddleware } from "./middleware/auth";
-
-import cookieParser from 'cookie-parser';
+import { generalLimiter, authLimiter, generateLimiter } from "./middleware/rateLimit";
+import logger from './logger';
 
 dotenv.config({ path: './server/.env' });
 
@@ -22,7 +23,9 @@ const app = express();
 app.use(cookieParser());
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
+app.use(generalLimiter);
 
+// Request logging
 app.use((req, res, next) => {
     const start = Date.now();
 
@@ -32,17 +35,17 @@ app.use((req, res, next) => {
         logBody = safe;
     }
 
-    console.log(`[Server] --> ${req.method} ${req.path}`, req.method === 'GET' ? req.query : logBody);
+    logger.info(`--> ${req.method} ${req.path}`, { body: req.method === 'GET' ? req.query : logBody });
     res.on('finish', () => {
-        console.log(`[Server] <-- ${req.method} ${req.path} ${res.statusCode} (${Date.now() - start}ms)`);
+        logger.info(`<-- ${req.method} ${req.path} ${res.statusCode}`, { duration: `${Date.now() - start}ms` });
     });
     next();
 });
 
-app.use('/api/generate', authMiddleware, generateRoutes);
+app.use('/api/generate', authMiddleware, generateLimiter, generateRoutes);
 app.use('/api/chats', authMiddleware, chatRoutes);
-app.use('/api/auth', authRoutes)
+app.use('/api/auth', authLimiter, authRoutes);
 
 app.listen(4000, () => {
-    console.log('Server running on http://localhost:4000');
+    logger.info('Server running on http://localhost:4000');
 });

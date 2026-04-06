@@ -1,4 +1,5 @@
 import { AppError } from '../errors';
+import logger from '../logger';
 
 export interface ChatMessage {
     role: string;
@@ -23,19 +24,19 @@ function logRequest(model: string, messages: ChatMessage[], size: string) {
             ),
         };
     });
-    console.log(`[OpenRouter] --> ${model} | ${messages.length} messages | size: ${size}`);
-    console.log(`[OpenRouter] messages:`, JSON.stringify(loggableMessages, null, 2));
+    logger.info(`[OpenRouter] --> ${model} | ${messages.length} messages | size: ${size}`);
+    logger.debug('[OpenRouter] messages', { messages: loggableMessages });
 }
 
 function logResponse(status: number, data: Record<string, unknown>) {
     if (status >= 400) {
-        console.error(`[OpenRouter] <-- ${status} ERROR:`, data);
+        logger.error(`[OpenRouter] <-- ${status} ERROR`, { data });
         return;
     }
     const choices = data.choices as { message: { images?: unknown[]; content?: string } }[] | undefined;
     const hasImage = (choices?.[0]?.message?.images?.length ?? 0) > 0;
     const text = choices?.[0]?.message?.content;
-    console.log(`[OpenRouter] <-- ${status} | image: ${hasImage} | text: ${text ? String(text).slice(0, 100) : 'none'} | usage:`, data.usage);
+    logger.info(`[OpenRouter] <-- ${status} | image: ${hasImage} | text: ${text ? String(text).slice(0, 100) : 'none'}`, { usage: data.usage });
 }
 
 export async function generateImage(

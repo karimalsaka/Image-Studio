@@ -44,8 +44,10 @@ export default function ChatPage({
       const tempId = `temp-${Date.now()}`;
       const tempUserMsg: Message = {
         id: tempId,
+        chatId: id,
         role: "user",
         content,
+        imageUrl: null,
         createdAt: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, tempUserMsg]);

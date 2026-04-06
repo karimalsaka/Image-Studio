@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { logOut } from '../services/api';
 
 interface User {
-    id: string,
-    email: string,
-    name: string
+    id: string;
+    email: string;
+    name: string | null;
 }
 
 interface AuthContextType {
@@ -28,7 +28,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const savedUser = localStorage.getItem('user')
 
         if (savedUser) {
-            setUser(JSON.parse(savedUser))
+            try {
+                setUser(JSON.parse(savedUser) as User);
+            } catch {
+                localStorage.removeItem('user');
+            }
         }
 
         setIsLoading(false)

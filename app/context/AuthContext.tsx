@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { logOut } from '../services/api';
+import { logOut } from '../services/api/auth';
 
 interface User {
     id: string;

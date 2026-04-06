@@ -3,7 +3,7 @@
 import { use, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Dropdown from "@/app/components/Dropdown";
-import { getChat, sendMessage } from "@/app/services/api";
+import { getChat, sendMessage } from "@/app/services/api/chats";
 import { ApiError } from "@/app/services/errors";
 import { MODELS, SIZES } from "@/app/shared/constants";
 import type { Chat, Message } from "@/app/shared/types";

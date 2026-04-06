@@ -6,7 +6,14 @@
       "Bash(git push:*)",
       "Bash(git add:*)",
       "Bash(npm install:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(git commit:*)",
+      "Bash(xargs grep:*)",
+      "Bash(grep -r \"process.env\\\\|password\\\\|secret\\\\|key\" /Users/karimalsaka/Documents/GitHub/imagestudio/imagestudio/app --include=*.ts --include=*.tsx)",
+      "Bash(grep:*)",
+      "Bash(ls -la /Users/karimalsaka/Documents/GitHub/imagestudio/imagestudio/.env*)",
+      "Bash(ls:*)",
+      "Bash(npm run:*)"
     ]
   }
 }

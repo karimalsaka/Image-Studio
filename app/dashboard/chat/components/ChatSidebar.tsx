@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { getChats, deleteChat } from "@/app/services/api";
+import { getChats, deleteChat } from "@/app/services/api/chats";
 import type { Chat } from "@/app/shared/types";
 import { useAuth } from "@/app/context/AuthContext";
 import AuthModal from "@/app/components/AuthModal";

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getChats } from "@/app/services/api";
+import { getChats } from "@/app/services/api/chats";
 import { useAuth } from "@/app/context/AuthContext";
 import AuthModal from "@/app/components/AuthModal";
 

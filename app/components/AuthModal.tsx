@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/app/context/AuthContext";
-import { signUp, logIn } from "@/app/services/api";
+import { signUp, logIn } from "@/app/services/api/auth";
 import { ApiError } from "@/app/services/errors";
 
 interface AuthModalProps {

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "next dev",
     "server": "tsx server/index.ts",
-    "build": "next build",
+    "generate": "prisma generate",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint"
   },

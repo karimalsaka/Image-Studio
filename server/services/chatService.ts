@@ -72,33 +72,44 @@ class ChatService {
 
         messages.push({ role: 'user', content: data.content });
 
-        // Generate new image with full history
-        const result = await generateImage(data.content, data.size || '1:1', data.model || chat.model, messages);
-        const images = result.choices?.[0]?.message?.images;
-        if (!images || images.length === 0) {
-            throw new AppError('Model did not return an image. Try a different prompt.');
-        }
- 
-        const base64Url = images[0].image_url.url;
-        const filename = `${Date.now()}.png`;
-        const s3ImageUrl = await uploadImage(base64Url, filename);
-
-        // First: save the user's prompt
+        // Save user message immediately so it persists
         await this.chatRepository.createMessage({
             chat: { connect: { id: chatId } },
             role: 'user',
             content: data.content,
         });
 
-        // Second: save the assistant's generated image
-        const assistantMessage = await this.chatRepository.createMessage({
-            chat: { connect: { id: chatId } },
-            role: 'assistant',
-            content: '',
-            imageUrl: s3ImageUrl,
-        });
-        
-        return assistantMessage
+        // Generate new image
+        try {
+            const result = await generateImage(data.content, data.size || '1:1', data.model || chat.model, messages);
+            const images = result.choices?.[0]?.message?.images;
+            if (!images || images.length === 0) {
+                throw new AppError('Model did not return an image. Try a different prompt.');
+            }
+
+            const base64Url = images[0].image_url.url;
+            const filename = `${Date.now()}.png`;
+            const s3ImageUrl = await uploadImage(base64Url, filename);
+
+            const assistantMessage = await this.chatRepository.createMessage({
+                chat: { connect: { id: chatId } },
+                role: 'assistant',
+                content: '',
+                imageUrl: s3ImageUrl,
+            });
+
+            return assistantMessage;
+        } catch (err) {
+            // Save error as assistant message so the user sees what went wrong
+            const errorMessage = err instanceof AppError ? err.message : 'Image generation failed.';
+            const assistantMessage = await this.chatRepository.createMessage({
+                chat: { connect: { id: chatId } },
+                role: 'assistant',
+                content: errorMessage,
+            });
+
+            return assistantMessage;
+        }
     }
 }
 

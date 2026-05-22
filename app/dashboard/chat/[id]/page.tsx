@@ -20,30 +20,65 @@ export default function ChatPage({
   const [messages, setMessages] = useState<Message[]>([]);
   const [model, setModel] = useState(MODELS[0].id);
   const [size, setSize] = useState(SIZES[0].id);
-  const [isSending, setIsSending] = useState(false);
+  const [isSending, setIsSending] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return sessionStorage.getItem(`chat:${id}:sending`) === 'true';
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  // Fetch chat data
+  const fetchChat = useCallback(() => {
     getChat(id)
       .then((data: Chat) => {
         setChat(data);
         setMessages(data.messages);
         setModel(data.model);
+
+        // If we were waiting for a response and it arrived, clear sending state
+        const lastMsg = data.messages[data.messages.length - 1];
+        if (lastMsg?.role === 'assistant') {
+          setIsSending(false);
+          sessionStorage.removeItem(`chat:${id}:sending`);
+        }
       })
       .catch((err) => setError(err instanceof ApiError ? err.message : "Failed to load chat."))
       .finally(() => setLoading(false));
   }, [id]);
 
+  // Initial fetch
+  useEffect(() => {
+    fetchChat();
+  }, [fetchChat]);
+
+  // If we're in sending state (came back to a pending chat), poll until response arrives
+  useEffect(() => {
+    if (!isSending || loading) return;
+
+    const interval = setInterval(() => {
+      getChat(id).then((data: Chat) => {
+        setMessages(data.messages);
+        const lastMsg = data.messages[data.messages.length - 1];
+        if (lastMsg?.role === 'assistant') {
+          setIsSending(false);
+          sessionStorage.removeItem(`chat:${id}:sending`);
+        }
+      }).catch(() => {});
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [id, isSending, loading]);
+
   const handleSend = useCallback(
     async (content: string) => {
       if (isSending) return;
       setIsSending(true);
+      sessionStorage.setItem(`chat:${id}:sending`, 'true');
       setError("");
 
-      const tempId = `temp-${Date.now()}`;
+      // Show user message immediately
       const tempUserMsg: Message = {
-        id: tempId,
+        id: `temp-${Date.now()}`,
         chatId: id,
         role: "user",
         content,
@@ -53,20 +88,21 @@ export default function ChatPage({
       setMessages((prev) => [...prev, tempUserMsg]);
 
       try {
-        const assistantMsg = await sendMessage(id, content, model, size);
-        setMessages((prev) => [...prev, assistantMsg]);
+        await sendMessage(id, content, model, size);
       } catch (err) {
-        setMessages((prev) => prev.filter((m) => m.id !== tempId));
         setError(
           err instanceof ApiError
             ? err.message
             : "Failed to send message."
         );
-      } finally {
-        setIsSending(false);
       }
+
+      // Fetch real messages from server (user msg + assistant response or error)
+      fetchChat();
+      setIsSending(false);
+      sessionStorage.removeItem(`chat:${id}:sending`);
     },
-    [id, model, size, isSending]
+    [id, model, size, isSending, fetchChat]
   );
 
   if (loading) {

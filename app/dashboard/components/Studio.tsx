@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import PromptTextField from "./PromptTextField";
 import Dropdown from "@/app/components/Dropdown";
@@ -32,12 +32,30 @@ interface ImageSlot {
 export default function Studio() {
   const router = useRouter();
   const { user } = useAuth();
-  const [prompt, setPrompt] = useState("");
+  const [prompt, setPrompt] = useState(() => {
+    if (typeof window === 'undefined') return "";
+    return sessionStorage.getItem('studio:prompt') || "";
+  });
   const [selectedModels, setSelectedModels] = useState([MODELS[0].id]);
   const [imageSize, setImageSize] = useState(SIZES[0].id);
   const [isLoading, setIsLoading] = useState(false);
-  const [slots, setSlots] = useState<ImageSlot[]>([]);
+  const [slots, setSlots] = useState<ImageSlot[]>(() => {
+    if (typeof window === 'undefined') return [];
+    const saved = sessionStorage.getItem('studio:slots');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [error, setError] = useState("");
+
+  // Persist prompt and slots to sessionStorage
+  useEffect(() => {
+    sessionStorage.setItem('studio:prompt', prompt);
+  }, [prompt]);
+
+  useEffect(() => {
+    if (slots.length > 0) {
+      sessionStorage.setItem('studio:slots', JSON.stringify(slots));
+    }
+  }, [slots]);
   const [refiningIndex, setRefiningIndex] = useState<number | null>(null);
   const [showAuth, setShowAuth] = useState(false);
 

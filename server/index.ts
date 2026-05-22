@@ -21,7 +21,26 @@ for (const key of required) {
 
 const app = express();
 app.use(cookieParser());
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+const allowedOrigins = [
+    process.env.CLIENT_URL,
+    process.env.CLIENT_URLS,
+    process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : undefined,
+]
+    .filter(Boolean)
+    .flatMap((origin) => origin!.split(','))
+    .map((origin) => origin.trim().replace(/\/$/, ''))
+    .filter(Boolean);
+
+app.use(cors({
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin.replace(/\/$/, ''))) {
+            callback(null, true);
+        } else {
+            callback(null, false);
+        }
+    },
+    credentials: true,
+}));
 app.use(express.json({ limit: '1mb' }));
 app.use(generalLimiter);
 
